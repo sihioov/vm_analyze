@@ -1,0 +1,658 @@
+=== VM 분석 결과 ===
+생성 시간: 2025-05-31 16:30:33
+분석 모드: 상세 tail-call 추적
+============================================================
+
+[*] 상세 tail-call 추적을 시작합니다...
+[*] 설정: 블록당 50개, 재방문 10회
+[*] 0x7ff64dbfc67a에서 tail-call 추적을 시작합니다
+
+--- 0x7ff64dbfc67a에서 블록 추적 중 ---
+0x7ff64dbfc67a:	jmp	0x7ff64dbf0b90
+
+[+] Tail call #1 → 0x7ff64dbf0b90
+
+--- 0x7ff64dbf0b90에서 블록 추적 중 ---
+0x7ff64dbf0b90:	mov	r9, rbp
+0x7ff64dbf0b93:	add	r9, 0xf8
+0x7ff64dbf0b9a:	jmp	0x7ff64dbf0af4
+
+[+] Tail call #2 → 0x7ff64dbf0af4
+
+--- 0x7ff64dbf0af4에서 블록 추적 중 ---
+0x7ff64dbf0af4:	mov	rax, r9
+0x7ff64dbf0af7:	add	ecx, 0x5c75cc56
+0x7ff64dbf0afd:	jmp	0x7ff64dbf0cb5
+
+[+] Tail call #3 → 0x7ff64dbf0cb5
+
+--- 0x7ff64dbf0cb5에서 블록 추적 중 ---
+0x7ff64dbf0cb5:	cmp	qword ptr [rax], rcx
+0x7ff64dbf0cb8:	mov	rcx, rbp
+0x7ff64dbf0cbb:	add	rcx, 0xf8
+0x7ff64dbf0cc2:	and	dword ptr [rcx], 0x4c69c78
+0x7ff64dbf0cc8:	jmp	0x7ff64dbf0bbc
+
+[+] Tail call #4 → 0x7ff64dbf0bbc
+
+--- 0x7ff64dbf0bbc에서 블록 추적 중 ---
+0x7ff64dbf0bbc:	mov	r15, rbp
+0x7ff64dbf0bbf:	add	r15, 0x33
+0x7ff64dbf0bc6:	or	dword ptr [r15], 0x34c4a2e3
+0x7ff64dbf0bcd:	mov	r14, rbp
+0x7ff64dbf0bd0:	and	r8, rax
+0x7ff64dbf0bd3:	sub	r13, r10
+0x7ff64dbf0bd6:	jmp	0x7ff64dbf0a3b
+
+[+] Tail call #5 → 0x7ff64dbf0a3b
+
+--- 0x7ff64dbf0a3b에서 블록 추적 중 ---
+0x7ff64dbf0a3b:	add	r14, 0x61
+0x7ff64dbf0a42:	and	rbx, 0xf1
+0x7ff64dbf0a49:	xor	rax, 0x5d
+0x7ff64dbf0a4f:	xor	r8, r13
+0x7ff64dbf0a52:	add	rbx, r11
+0x7ff64dbf0a55:	mov	r14, qword ptr [r14]
+0x7ff64dbf0a58:	mov	rbx, r8
+0x7ff64dbf0a5b:	add	r14, 4
+0x7ff64dbf0a62:	add	r8, 0x59
+0x7ff64dbf0a69:	movzx	r10, word ptr [r14]
+0x7ff64dbf0a6d:	jmp	0x7ff64dbf0c3e
+
+[+] Tail call #6 → 0x7ff64dbf0c3e
+
+--- 0x7ff64dbf0c3e에서 블록 추적 중 ---
+0x7ff64dbf0c3e:	add	r8, r11
+0x7ff64dbf0c41:	or	r11, 0x94
+0x7ff64dbf0c48:	jmp	0x7ff64dbf0a96
+
+[+] Tail call #7 → 0x7ff64dbf0a96
+
+--- 0x7ff64dbf0a96에서 블록 추적 중 ---
+0x7ff64dbf0a96:	mov	rax, 0x200
+0x7ff64dbf0a9d:	jmp	0x7ff64dbf0aa7
+
+[+] Tail call #8 → 0x7ff64dbf0aa7
+
+--- 0x7ff64dbf0aa7에서 블록 추적 중 ---
+0x7ff64dbf0aa7:	add	r10, rbp
+0x7ff64dbf0aaa:	mov	qword ptr [r10], rsp
+0x7ff64dbf0aad:	mov	rsi, rbp
+0x7ff64dbf0ab0:	mov	rbx, rbp
+0x7ff64dbf0ab3:	add	rsi, 0x170
+0x7ff64dbf0aba:	add	dword ptr [rsi], 0x5b1bbfba
+0x7ff64dbf0ac0:	add	rbx, 0xf8
+0x7ff64dbf0ac7:	jmp	0x7ff64dbf0c7c
+
+[+] Tail call #9 → 0x7ff64dbf0c7c
+
+--- 0x7ff64dbf0c7c에서 블록 추적 중 ---
+0x7ff64dbf0c7c:	add	dword ptr [rbx], 0x4aa7542a
+0x7ff64dbf0c82:	mov	r12, rbp
+0x7ff64dbf0c85:	add	r12, 0x170
+0x7ff64dbf0c8c:	or	r13, rbx
+0x7ff64dbf0c8f:	or	rdx, 8
+0x7ff64dbf0c96:	mov	r11, 0
+0x7ff64dbf0c9d:	xor	rdx, 0x28
+0x7ff64dbf0ca4:	jmp	0x7ff64dbf0b33
+
+[+] Tail call #10 → 0x7ff64dbf0b33
+
+--- 0x7ff64dbf0b33에서 블록 추적 중 ---
+0x7ff64dbf0b33:	mov	r12, rbp
+0x7ff64dbf0b36:	mov	r9, 0x12
+0x7ff64dbf0b3d:	and	rdx, 0x82
+0x7ff64dbf0b44:	sub	rdx, 0xe9
+0x7ff64dbf0b4b:	add	r12, 0x61
+0x7ff64dbf0b52:	sub	rdx, 0xe9
+0x7ff64dbf0b59:	jmp	0x7ff64dbf0a72
+
+[+] Tail call #11 → 0x7ff64dbf0a72
+
+--- 0x7ff64dbf0a72에서 블록 추적 중 ---
+0x7ff64dbf0a72:	add	r9, 0x69
+0x7ff64dbf0a79:	jmp	0x7ff64dbf0bf2
+
+[+] Tail call #12 → 0x7ff64dbf0bf2
+
+--- 0x7ff64dbf0bf2에서 블록 추적 중 ---
+0x7ff64dbf0bf2:	mov	r12, qword ptr [r12]
+0x7ff64dbf0bf6:	add	r12, 6
+0x7ff64dbf0bfd:	and	rdx, 0xac
+0x7ff64dbf0c04:	mov	r11w, word ptr [r12]
+0x7ff64dbf0c09:	add	rdx, 0xc1
+0x7ff64dbf0c10:	jmp	0x7ff64dbf0ba4
+
+[+] Tail call #13 → 0x7ff64dbf0ba4
+
+--- 0x7ff64dbf0ba4에서 블록 추적 중 ---
+0x7ff64dbf0ba4:	sub	rdx, 0xffff
+0x7ff64dbf0bab:	sub	r9, 0x94
+0x7ff64dbf0bb2:	jmp	0x7ff64dbf0b63
+
+[+] Tail call #14 → 0x7ff64dbf0b63
+
+--- 0x7ff64dbf0b63에서 블록 추적 중 ---
+0x7ff64dbf0b63:	shl	r11, 3
+0x7ff64dbf0b67:	and	r13, 0xaf
+0x7ff64dbf0b6e:	and	r8, r13
+0x7ff64dbf0b71:	sub	r9, 0x55
+0x7ff64dbf0b78:	and	r8, 0xe9
+0x7ff64dbf0b7f:	mov	rdi, 0x400
+0x7ff64dbf0b86:	jmp	0x7ff64dbf0bdb
+
+[+] Tail call #15 → 0x7ff64dbf0bdb
+
+--- 0x7ff64dbf0bdb에서 블록 추적 중 ---
+0x7ff64dbf0bdb:	and	rdx, rbx
+0x7ff64dbf0bde:	xor	r8, 0x69
+0x7ff64dbf0be5:	sub	r9, r12
+0x7ff64dbf0be8:	jmp	0x7ff64dbf0c61
+
+[+] Tail call #16 → 0x7ff64dbf0c61
+
+--- 0x7ff64dbf0c61에서 블록 추적 중 ---
+0x7ff64dbf0c61:	mov	rsi, rbp
+0x7ff64dbf0c64:	or	rdx, 0xaf
+0x7ff64dbf0c6b:	sub	r8, 0xe3
+0x7ff64dbf0c72:	jmp	0x7ff64dbf0a83
+
+[+] Tail call #17 → 0x7ff64dbf0a83
+
+--- 0x7ff64dbf0a83에서 블록 추적 중 ---
+0x7ff64dbf0a83:	sub	r8, 0x59
+0x7ff64dbf0a8a:	and	rdx, 0xf
+0x7ff64dbf0a91:	jmp	0x7ff64dbf0b02
+
+[+] Tail call #18 → 0x7ff64dbf0b02
+
+--- 0x7ff64dbf0b02에서 블록 추적 중 ---
+0x7ff64dbf0b02:	add	rsi, 0x61
+0x7ff64dbf0b09:	xor	rdx, rsi
+0x7ff64dbf0b0c:	mov	rsi, qword ptr [rsi]
+0x7ff64dbf0b0f:	or	r9, 0xe3
+0x7ff64dbf0b16:	xor	r9, rdi
+0x7ff64dbf0b19:	xor	rdx, 0x61
+0x7ff64dbf0b20:	add	rsi, 0
+0x7ff64dbf0b27:	or	rdi, 0xf
+0x7ff64dbf0b2e:	jmp	0x7ff64dbf0ccd
+
+[+] Tail call #19 → 0x7ff64dbf0ccd
+
+--- 0x7ff64dbf0ccd에서 블록 추적 중 ---
+0x7ff64dbf0ccd:	sub	rdx, r13
+0x7ff64dbf0cd0:	movsxd	rbx, dword ptr [rsi]
+0x7ff64dbf0cd3:	add	r8, rdx
+0x7ff64dbf0cd6:	add	r8, 0xf
+0x7ff64dbf0cdd:	mov	r15, rbp
+0x7ff64dbf0ce0:	xor	r8, 0x59
+0x7ff64dbf0ce7:	jmp	0x7ff64dbf0c4d
+
+[+] Tail call #20 → 0x7ff64dbf0c4d
+
+--- 0x7ff64dbf0c4d에서 블록 추적 중 ---
+0x7ff64dbf0c4d:	add	r15, 0x61
+0x7ff64dbf0c54:	sub	r8, r15
+0x7ff64dbf0c57:	jmp	0x7ff64dbf0cec
+
+[+] Tail call #21 → 0x7ff64dbf0cec
+
+--- 0x7ff64dbf0cec에서 블록 추적 중 ---
+0x7ff64dbf0cec:	add	rdx, 0xac
+0x7ff64dbf0cf3:	jmp	0x7ff64dbf0c2e
+
+[+] Tail call #22 → 0x7ff64dbf0c2e
+
+--- 0x7ff64dbf0c2e에서 블록 추적 중 ---
+0x7ff64dbf0c2e:	add	qword ptr [r15], rbx
+0x7ff64dbf0c31:	sub	r9, r11
+0x7ff64dbf0c34:	jmp	0x7ff64dbf0c1a
+
+[+] Tail call #23 → 0x7ff64dbf0c1a
+
+--- 0x7ff64dbf0c1a에서 블록 추적 중 ---
+0x7ff64dbf0c1a:	xor	r8, 0x25
+0x7ff64dbf0c21:	mov	r10, rbp
+0x7ff64dbf0c24:	jmp	0x7ff64dbf0ae7
+
+[+] Tail call #24 → 0x7ff64dbf0ae7
+
+--- 0x7ff64dbf0ae7에서 블록 추적 중 ---
+0x7ff64dbf0ae7:	or	r8, r8
+0x7ff64dbf0aea:	jmp	0x7ff64dbf0ca9
+
+[+] Tail call #25 → 0x7ff64dbf0ca9
+
+--- 0x7ff64dbf0ca9에서 블록 추적 중 ---
+0x7ff64dbf0ca9:	add	r10, 0x7d
+0x7ff64dbf0cb0:	jmp	0x7ff64dbf0acc
+
+[+] Tail call #26 → 0x7ff64dbf0acc
+
+--- 0x7ff64dbf0acc에서 블록 추적 중 ---
+0x7ff64dbf0acc:	sub	rdx, r9
+0x7ff64dbf0acf:	mov	r9, qword ptr [r10]
+0x7ff64dbf0ad2:	and	rdi, 0x7fffffff
+0x7ff64dbf0ad9:	add	r9, r11
+0x7ff64dbf0adc:	mov	r13, qword ptr [r9]
+0x7ff64dbf0adf:	jmp	r13
+[*] 간접 점프: jmp r13. 추적 계속 진행.
+0x7ff64dbf0ae2:	jmp	0x7ff64dbf0cfd
+
+[+] Tail call #27 → 0x7ff64dbf0cfd
+
+--- 0x7ff64dbf0cfd에서 블록 추적 중 ---
+0x7ff64dbf0cfd:	jmp	0x7ff64dbf0e23
+
+[+] Tail call #28 → 0x7ff64dbf0e23
+
+--- 0x7ff64dbf0e23에서 블록 추적 중 ---
+0x7ff64dbf0e23:	mov	rsi, rbp
+0x7ff64dbf0e26:	add	rsi, 0xf8
+0x7ff64dbf0e2d:	mov	rcx, rsi
+0x7ff64dbf0e30:	add	edi, 0x48de7702
+0x7ff64dbf0e36:	cmp	qword ptr [rcx], rdi
+0x7ff64dbf0e39:	mov	rbx, rbp
+0x7ff64dbf0e3c:	add	rbx, 0xf8
+0x7ff64dbf0e43:	jmp	0x7ff64dbf1132
+
+[+] Tail call #29 → 0x7ff64dbf1132
+
+--- 0x7ff64dbf1132에서 블록 추적 중 ---
+0x7ff64dbf1132:	mov	r10d, dword ptr [rbx]
+0x7ff64dbf1135:	mov	r15, rbp
+0x7ff64dbf1138:	jmp	0x7ff64dbf0e94
+
+[+] Tail call #30 → 0x7ff64dbf0e94
+
+--- 0x7ff64dbf0e94에서 블록 추적 중 ---
+0x7ff64dbf0e94:	add	r15, 0x33
+0x7ff64dbf0e9b:	jmp	0x7ff64dbf117f
+
+[+] Tail call #31 → 0x7ff64dbf117f
+
+--- 0x7ff64dbf117f에서 블록 추적 중 ---
+0x7ff64dbf117f:	mov	ebx, dword ptr [r15]
+0x7ff64dbf1182:	mov	rdi, rbp
+0x7ff64dbf1185:	add	rdi, 0xf8
+0x7ff64dbf118c:	jmp	0x7ff64dbf0fa5
+
+[+] Tail call #32 → 0x7ff64dbf0fa5
+
+--- 0x7ff64dbf0fa5에서 블록 추적 중 ---
+0x7ff64dbf0fa5:	mov	dword ptr [rdi], ebx
+0x7ff64dbf0fa7:	mov	r13, rbp
+0x7ff64dbf0faa:	add	r13, 0x33
+0x7ff64dbf0fb1:	mov	dword ptr [r13], r10d
+0x7ff64dbf0fb5:	jmp	0x7ff64dbf0e87
+
+[+] Tail call #33 → 0x7ff64dbf0e87
+
+--- 0x7ff64dbf0e87에서 블록 추적 중 ---
+0x7ff64dbf0e87:	mov	rax, rbp
+0x7ff64dbf0e8a:	jmp	0x7ff64dbf0da6
+
+[+] Tail call #34 → 0x7ff64dbf0da6
+
+--- 0x7ff64dbf0da6에서 블록 추적 중 ---
+0x7ff64dbf0da6:	add	rax, 0xf8
+0x7ff64dbf0dac:	or	dword ptr [rax], 0x6639287e
+0x7ff64dbf0db2:	jmp	0x7ff64dbf0e59
+
+[+] Tail call #35 → 0x7ff64dbf0e59
+
+--- 0x7ff64dbf0e59에서 블록 추적 중 ---
+0x7ff64dbf0e59:	mov	rdx, rbp
+0x7ff64dbf0e5c:	mov	rbx, rbp
+0x7ff64dbf0e5f:	mov	r12, rbp
+0x7ff64dbf0e62:	add	r12, 0xf8
+0x7ff64dbf0e69:	jmp	0x7ff64dbf10c3
+
+[+] Tail call #36 → 0x7ff64dbf10c3
+
+--- 0x7ff64dbf10c3에서 블록 추적 중 ---
+0x7ff64dbf10c3:	mov	r13d, dword ptr [r12]
+0x7ff64dbf10c7:	and	r13d, 2
+0x7ff64dbf10ce:	cmp	r13d, 0
+0x7ff64dbf10d5:	je	0x7ff64dbf0dc4
+0x7ff64dbf10db:	mov	r12, rbp
+0x7ff64dbf10de:	jmp	0x7ff64dbf0de7
+
+[+] Tail call #37 → 0x7ff64dbf0de7
+
+--- 0x7ff64dbf0de7에서 블록 추적 중 ---
+0x7ff64dbf0de7:	add	r12, 0xf8
+0x7ff64dbf0dee:	jmp	0x7ff64dbf0df8
+
+[+] Tail call #38 → 0x7ff64dbf0df8
+
+--- 0x7ff64dbf0df8에서 블록 추적 중 ---
+0x7ff64dbf0df8:	add	dword ptr [r12], 0x4cced5a
+0x7ff64dbf0e00:	mov	r12, rbp
+0x7ff64dbf0e03:	jmp	0x7ff64dbf0f15
+
+[+] Tail call #39 → 0x7ff64dbf0f15
+
+--- 0x7ff64dbf0f15에서 블록 추적 중 ---
+0x7ff64dbf0f15:	add	r12, 0x33
+0x7ff64dbf0f1c:	jmp	0x7ff64dbf0dbc
+
+[+] Tail call #40 → 0x7ff64dbf0dbc
+
+--- 0x7ff64dbf0dbc에서 블록 추적 중 ---
+0x7ff64dbf0dbc:	sub	dword ptr [r12], 0x74a88988
+0x7ff64dbf0dc4:	add	rbx, 0x61
+0x7ff64dbf0dcb:	jmp	0x7ff64dbf1083
+
+[+] Tail call #41 → 0x7ff64dbf1083
+
+--- 0x7ff64dbf1083에서 블록 추적 중 ---
+0x7ff64dbf1083:	mov	rbx, qword ptr [rbx]
+0x7ff64dbf1086:	jmp	0x7ff64dbf0e48
+
+[+] Tail call #42 → 0x7ff64dbf0e48
+
+--- 0x7ff64dbf0e48에서 블록 추적 중 ---
+0x7ff64dbf0e48:	add	rbx, 2
+0x7ff64dbf0e4f:	jmp	0x7ff64dbf0e7b
+
+[+] Tail call #43 → 0x7ff64dbf0e7b
+
+--- 0x7ff64dbf0e7b에서 블록 추적 중 ---
+0x7ff64dbf0e7b:	add	rdx, 0x61
+0x7ff64dbf0e82:	jmp	0x7ff64dbf0d4d
+
+[+] Tail call #44 → 0x7ff64dbf0d4d
+
+--- 0x7ff64dbf0d4d에서 블록 추적 중 ---
+0x7ff64dbf0d4d:	movzx	rbx, word ptr [rbx]
+0x7ff64dbf0d51:	jmp	0x7ff64dbf0e0d
+
+[+] Tail call #45 → 0x7ff64dbf0e0d
+
+--- 0x7ff64dbf0e0d에서 블록 추적 중 ---
+0x7ff64dbf0e0d:	add	rbx, rbp
+0x7ff64dbf0e10:	mov	rdx, qword ptr [rdx]
+0x7ff64dbf0e13:	add	rdx, 0
+0x7ff64dbf0e1a:	movzx	rdx, word ptr [rdx]
+0x7ff64dbf0e1e:	jmp	0x7ff64dbf0fd8
+
+[+] Tail call #46 → 0x7ff64dbf0fd8
+
+--- 0x7ff64dbf0fd8에서 블록 추적 중 ---
+0x7ff64dbf0fd8:	add	rdx, rbp
+0x7ff64dbf0fdb:	push	rdx
+0x7ff64dbf0fdc:	mov	rdx, qword ptr [rdx]
+0x7ff64dbf0fdf:	mov	edx, dword ptr [rdx]
+0x7ff64dbf0fe1:	jmp	0x7ff64dbf0fba
+
+[+] Tail call #47 → 0x7ff64dbf0fba
+
+--- 0x7ff64dbf0fba에서 블록 추적 중 ---
+0x7ff64dbf0fba:	mov	dword ptr [rbx], edx
+0x7ff64dbf0fbc:	add	rbx, 4
+0x7ff64dbf0fc3:	jmp	0x7ff64dbf0ec6
+
+[+] Tail call #48 → 0x7ff64dbf0ec6
+
+--- 0x7ff64dbf0ec6에서 블록 추적 중 ---
+0x7ff64dbf0ec6:	mov	dword ptr [rbx], 0
+0x7ff64dbf0ecc:	jmp	0x7ff64dbf0f80
+
+[+] Tail call #49 → 0x7ff64dbf0f80
+
+--- 0x7ff64dbf0f80에서 블록 추적 중 ---
+0x7ff64dbf0f80:	mov	r15, rbp
+0x7ff64dbf0f83:	add	r15, 0x61
+0x7ff64dbf0f8a:	mov	r15, qword ptr [r15]
+0x7ff64dbf0f8d:	add	r15, 4
+0x7ff64dbf0f94:	movzx	rdx, word ptr [r15]
+0x7ff64dbf0f98:	add	rdx, rbp
+0x7ff64dbf0f9b:	jmp	0x7ff64dbf0ee9
+
+[+] Tail call #50 → 0x7ff64dbf0ee9
+
+--- 0x7ff64dbf0ee9에서 블록 추적 중 ---
+0x7ff64dbf0ee9:	mov	rcx, qword ptr [rdx]
+0x7ff64dbf0eec:	and	rcx, 0x400
+0x7ff64dbf0ef3:	jmp	0x7ff64dbf1159
+
+[+] Tail call #51 → 0x7ff64dbf1159
+
+--- 0x7ff64dbf1159에서 블록 추적 중 ---
+0x7ff64dbf1159:	pop	rdx
+0x7ff64dbf115a:	cmp	rcx, 0
+0x7ff64dbf1161:	je	0x7ff64dbf1173
+0x7ff64dbf1167:	sub	qword ptr [rdx], 4
+0x7ff64dbf116e:	jmp	0x7ff64dbf1106
+
+[+] Tail call #52 → 0x7ff64dbf1106
+
+--- 0x7ff64dbf1106에서 블록 추적 중 ---
+0x7ff64dbf1106:	mov	r14, rbp
+0x7ff64dbf1109:	add	r14, 0x170
+0x7ff64dbf1110:	mov	rcx, rbp
+0x7ff64dbf1113:	or	dword ptr [r14], 0x7f283ba1
+0x7ff64dbf111a:	add	rcx, 0xf8
+0x7ff64dbf1121:	mov	r15, rcx
+0x7ff64dbf1124:	or	edx, 0x33101d2c
+0x7ff64dbf112a:	cmp	qword ptr [r15], rdx
+0x7ff64dbf112d:	jmp	0x7ff64dbf0f26
+
+[+] Tail call #53 → 0x7ff64dbf0f26
+
+--- 0x7ff64dbf0f26에서 블록 추적 중 ---
+0x7ff64dbf0f26:	or	r15, 0xee
+0x7ff64dbf0f2d:	add	rcx, 0x94
+0x7ff64dbf0f34:	and	r15, 0x25
+0x7ff64dbf0f3b:	jmp	0x7ff64dbf1090
+
+[+] Tail call #54 → 0x7ff64dbf1090
+
+--- 0x7ff64dbf1090에서 블록 추적 중 ---
+0x7ff64dbf1090:	mov	rdx, rbp
+0x7ff64dbf1093:	sub	r15, 0x79
+0x7ff64dbf109a:	mov	rsi, rbp
+0x7ff64dbf109d:	mov	r14, 0
+0x7ff64dbf10a4:	add	rsi, 0x7d
+0x7ff64dbf10ab:	jmp	0x7ff64dbf0ea5
+
+[+] Tail call #55 → 0x7ff64dbf0ea5
+
+--- 0x7ff64dbf0ea5에서 블록 추적 중 ---
+0x7ff64dbf0ea5:	xor	r15, 0x82
+0x7ff64dbf0eac:	add	rdx, 0x61
+0x7ff64dbf0eb3:	or	rax, 0xac
+0x7ff64dbf0eb9:	mov	rdx, qword ptr [rdx]
+0x7ff64dbf0ebc:	jmp	0x7ff64dbf0ed6
+
+[+] Tail call #56 → 0x7ff64dbf0ed6
+
+--- 0x7ff64dbf0ed6에서 블록 추적 중 ---
+0x7ff64dbf0ed6:	and	r14, 0x69
+0x7ff64dbf0edd:	add	rdx, 0xa
+0x7ff64dbf0ee4:	jmp	0x7ff64dbf0feb
+
+[+] Tail call #57 → 0x7ff64dbf0feb
+
+--- 0x7ff64dbf0feb에서 블록 추적 중 ---
+0x7ff64dbf0feb:	mov	r12, 0
+0x7ff64dbf0ff2:	add	r12, 0x32
+0x7ff64dbf0ff9:	movzx	rdx, word ptr [rdx]
+0x7ff64dbf0ffd:	add	r12, 0x2f
+0x7ff64dbf1004:	jmp	0x7ff64dbf0d23
+
+[+] Tail call #58 → 0x7ff64dbf0d23
+
+--- 0x7ff64dbf0d23에서 블록 추적 중 ---
+0x7ff64dbf0d23:	or	r15, 0x54
+0x7ff64dbf0d2a:	mov	rsi, qword ptr [rsi]
+0x7ff64dbf0d2d:	add	r14, 0x95
+0x7ff64dbf0d34:	or	r14, 0x79
+0x7ff64dbf0d3b:	add	r14, 0x79
+0x7ff64dbf0d42:	mov	r13, rbp
+0x7ff64dbf0d45:	xor	r12, r14
+0x7ff64dbf0d48:	jmp	0x7ff64dbf1142
+
+[+] Tail call #59 → 0x7ff64dbf1142
+
+--- 0x7ff64dbf1142에서 블록 추적 중 ---
+0x7ff64dbf1142:	add	r13, 0x15b
+0x7ff64dbf1149:	or	r14, r12
+0x7ff64dbf114c:	add	r15, r15
+0x7ff64dbf114f:	jmp	0x7ff64dbf1027
+
+[+] Tail call #60 → 0x7ff64dbf1027
+
+--- 0x7ff64dbf1027에서 블록 추적 중 ---
+0x7ff64dbf1027:	and	r14, r13
+0x7ff64dbf102a:	add	r12, 0x79
+0x7ff64dbf1031:	mov	r8, rbp
+0x7ff64dbf1034:	add	r8, 0xf8
+0x7ff64dbf103b:	mov	rax, rdx
+0x7ff64dbf103e:	sub	rax, 0xf0
+0x7ff64dbf1044:	sub	edx, dword ptr [r8]
+0x7ff64dbf1047:	sub	r15, r13
+0x7ff64dbf104a:	and	rax, r12
+0x7ff64dbf104d:	jmp	0x7ff64dbf1009
+
+[+] Tail call #61 → 0x7ff64dbf1009
+
+--- 0x7ff64dbf1009에서 블록 추적 중 ---
+0x7ff64dbf1009:	xor	r14, r13
+0x7ff64dbf100c:	and	rax, 0x12
+0x7ff64dbf1012:	add	r12, 0x79
+0x7ff64dbf1019:	xor	rax, rax
+0x7ff64dbf101c:	add	rax, 0xc1
+0x7ff64dbf1022:	jmp	0x7ff64dbf0ef8
+
+[+] Tail call #62 → 0x7ff64dbf0ef8
+
+--- 0x7ff64dbf0ef8에서 블록 추적 중 ---
+0x7ff64dbf0ef8:	mov	r11, 1
+0x7ff64dbf0eff:	mov	rdi, rbp
+0x7ff64dbf0f02:	add	rdi, 0x47
+0x7ff64dbf0f09:	or	r15, 0x40
+0x7ff64dbf0f10:	jmp	0x7ff64dbf0f54
+
+[+] Tail call #63 → 0x7ff64dbf0f54
+
+--- 0x7ff64dbf0f54에서 블록 추적 중 ---
+0x7ff64dbf0f54:	add	r15, r11
+0x7ff64dbf0f57:	and	r11, 0x8b
+0x7ff64dbf0f5e:	xor	r15, r14
+0x7ff64dbf0f61:	xor	r15, 0x55
+0x7ff64dbf0f68:	mov	rbx, rbp
+0x7ff64dbf0f6b:	add	rbx, 0xf8
+0x7ff64dbf0f72:	or	dword ptr [rbx], edx
+0x7ff64dbf0f74:	xor	r15, 0x400
+0x7ff64dbf0f7b:	jmp	0x7ff64dbf1052
+
+[+] Tail call #64 → 0x7ff64dbf1052
+
+--- 0x7ff64dbf1052에서 블록 추적 중 ---
+0x7ff64dbf1052:	and	rax, rdx
+0x7ff64dbf1055:	and	rdx, 0xffff
+0x7ff64dbf105c:	mov	r15, 0x12
+0x7ff64dbf1063:	add	r15, -0x80000000
+0x7ff64dbf106a:	jmp	0x7ff64dbf106f
+
+[+] Tail call #65 → 0x7ff64dbf106f
+
+--- 0x7ff64dbf106f에서 블록 추적 중 ---
+0x7ff64dbf106f:	shl	rdx, 3
+0x7ff64dbf1073:	add	rsi, rdx
+0x7ff64dbf1076:	add	rax, r11
+0x7ff64dbf1079:	jmp	0x7ff64dbf0dd5
+
+[+] Tail call #66 → 0x7ff64dbf0dd5
+
+--- 0x7ff64dbf0dd5에서 블록 추적 중 ---
+0x7ff64dbf0dd5:	and	rax, 0x19
+0x7ff64dbf0ddb:	mov	rdx, 1
+0x7ff64dbf0de2:	jmp	0x7ff64dbf0d02
+
+[+] Tail call #67 → 0x7ff64dbf0d02
+
+--- 0x7ff64dbf0d02에서 블록 추적 중 ---
+0x7ff64dbf0d02:	and	rax, rbx
+0x7ff64dbf0d05:	mov	r12, qword ptr [rsi]
+0x7ff64dbf0d08:	jmp	0x7ff64dbf10b0
+
+[+] Tail call #68 → 0x7ff64dbf10b0
+
+--- 0x7ff64dbf10b0에서 블록 추적 중 ---
+0x7ff64dbf10b0:	add	r15, 0x53
+0x7ff64dbf10b7:	mov	r8, 0
+0x7ff64dbf10be:	jmp	0x7ff64dbf0d5b
+
+[+] Tail call #69 → 0x7ff64dbf0d5b
+
+--- 0x7ff64dbf0d5b에서 블록 추적 중 ---
+0x7ff64dbf0d5b:	or	rdx, 0x32
+0x7ff64dbf0d62:	mov	r11, rbp
+0x7ff64dbf0d65:	and	rax, 0xaf
+0x7ff64dbf0d6b:	and	r8, r8
+0x7ff64dbf0d6e:	add	r11, 0x61
+0x7ff64dbf0d75:	xor	rax, r8
+0x7ff64dbf0d78:	sub	rdx, 0x32
+0x7ff64dbf0d7f:	jmp	0x7ff64dbf0e6e
+
+[+] Tail call #70 → 0x7ff64dbf0e6e
+
+--- 0x7ff64dbf0e6e에서 블록 추적 중 ---
+0x7ff64dbf0e6e:	add	rax, r11
+0x7ff64dbf0e71:	jmp	0x7ff64dbf0fc8
+
+[+] Tail call #71 → 0x7ff64dbf0fc8
+
+--- 0x7ff64dbf0fc8에서 블록 추적 중 ---
+0x7ff64dbf0fc8:	and	rax, 0x80
+0x7ff64dbf0fce:	jmp	0x7ff64dbf10e8
+
+[+] Tail call #72 → 0x7ff64dbf10e8
+
+--- 0x7ff64dbf10e8에서 블록 추적 중 ---
+0x7ff64dbf10e8:	mov	r11, qword ptr [r11]
+0x7ff64dbf10eb:	and	rdx, 0x53
+0x7ff64dbf10f2:	add	r11, 6
+0x7ff64dbf10f9:	or	rax, r8
+0x7ff64dbf10fc:	jmp	0x7ff64dbf0d89
+
+[+] Tail call #73 → 0x7ff64dbf0d89
+
+--- 0x7ff64dbf0d89에서 블록 추적 중 ---
+0x7ff64dbf0d89:	movsxd	rsi, dword ptr [r11]
+0x7ff64dbf0d8c:	mov	rbx, 0
+0x7ff64dbf0d93:	mov	rax, rbp
+0x7ff64dbf0d96:	mov	rdi, r8
+0x7ff64dbf0d99:	and	rbx, r13
+0x7ff64dbf0d9c:	jmp	0x7ff64dbf0f40
+
+[+] Tail call #74 → 0x7ff64dbf0f40
+
+--- 0x7ff64dbf0f40에서 블록 추적 중 ---
+0x7ff64dbf0f40:	mov	r13, rdi
+0x7ff64dbf0f43:	sub	r13, 0x400
+0x7ff64dbf0f4a:	jmp	0x7ff64dbf0d12
+
+[+] Tail call #75 → 0x7ff64dbf0d12
+
+--- 0x7ff64dbf0d12에서 블록 추적 중 ---
+0x7ff64dbf0d12:	add	rax, 0x61
+0x7ff64dbf0d18:	add	qword ptr [rax], rsi
+0x7ff64dbf0d1b:	jmp	r12
+[*] 간접 점프: jmp r12. 추적 계속 진행.
+0x7ff64dbf0d1e:	jmp	0x7ff64dbf1196
+
+[+] Tail call #76 → 0x7ff64dbf1196
+
+--- 0x7ff64dbf1196에서 블록 추적 중 ---
+0x7ff64dbf1196:	xchg	ebx, eax
+0x7ff64dbf1197:	pop	rbx
+0x7ff64dbf1198:	add	eax, 0x473cf157
+0x7ff64dbf119d:	sub	byte ptr [rcx], al
+0x7ff64dbf119f:	sti	
+0x7ff64dbf11a0:	add	al, byte ptr [rax]
+
+=== 분석 완료 ===
