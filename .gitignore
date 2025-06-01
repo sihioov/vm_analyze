@@ -1,3 +1,9 @@
+excution_simulation.txt
+hex.txt
+hex_data.txt
+tail_call_analysis.txt
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -92,14 +92,38 @@ class VMState:
         default_stack_addr = 0x7fff12340000
         
         self.registers = {
-            'rax': 0, 'rbx': 0, 'rcx': 0, 'rdx': 0,
-            'rsi': 0, 'rdi': 0, 
-            'rbp': initial_rbp if initial_rbp is not None else default_stack_addr,
-            'rsp': initial_rsp if initial_rsp is not None else default_stack_addr, 
-            'r8': 0, 'r9': 0, 'r10': 0,
-            'r11': 0, 'r12': 0, 'r13': 0, 'r14': 0, 'r15': 0
+            'rax': 0x7ff675a8c059, 'rbx': 0x5d8, 'rcx': 0x7ff675880000, 'rdx': 0x20ba81,
+            'rsi': 0x7ff67597186a, 'rdi': 0, 
+            #'rbp': initial_rbp if initial_rbp is not None else default_stack_addr,
+            #'rsp': initial_rsp if initial_rsp is not None else default_stack_addr,
+            'rbp': 0x7ff67597186a,
+            'rsp': 0x39587cf840,  
+            'r8': 0x7ff675880000, 'r9': 0x122d0, 'r10': 0x35b63ef729,
+            'r11': 0x35b63ef2f0, 'r12': 0, 'r13': 0, 'r14': 0, 'r15': 0
+            # 'rax': 0, 'rbx': 0, 'rcx': 0, 'rdx': 0,
+            # 'rsi': 0, 'rdi': 0, 
+            # 'rbp': initial_rbp if initial_rbp is not None else default_stack_addr,
+            # 'rsp': initial_rsp if initial_rsp is not None else default_stack_addr, 
+            # 'r8': 0, 'r9': 0, 'r10': 0,
+            # 'r11': 0, 'r12': 0, 'r13': 0, 'r14': 0, 'r15': 0
         }
-        self.memory = {}  # {address: (value, is_estimated)}
+        self.memory = {
+            0x7ff67597189d: (0x0, False),
+            0x7ff6759718c7: (0xa34f7a7a, False),
+            0x7ff675971962: (0x0, False),
+            0x7ff6759719da: (0x0, False),
+            0x7ff6759718cb: (0x75a38749, False),
+            0x7ff6759718e7: (0x7ff675a8ba81, False),
+            0x7ff675a8ba81: (0x7ff67599e17e, False),
+            # 스택 메모리: 현재 RSP 위치에 테스트용 반환 주소 설정
+            0x39587cf840: (0x7ff67597186a, False),  # 현재 RSP에 반환 주소 설정 (임시)
+            #0x7ff67599e17e: (0x7ff67597186a, False),
+            }  # {address: (value, is_estimated)}
+        self.flags = {
+            'ZF': False,  # Zero Flag
+            'CF': False,  # Carry Flag  
+            'SF': False   # Sign Flag
+        }
         self.use_real_values = False
         self.output = output_writer or OutputWriter()
         
@@ -152,6 +176,11 @@ class VMState:
         if self.use_real_values:
             return 0x0
         
+        # 스택 영역 감지 (RSP 기준)
+        rsp = self.registers['rsp']
+        if abs(address - rsp) < 0x1000:  # RSP 근처 4KB 범위
+            return 0x0  # 스택은 기본적으로 0으로 초기화
+        
         rbp = self.registers['rbp']
         offset = address - rbp
         
@@ -189,8 +218,14 @@ class DisassemblyEngine:
 
     def get_code_slice(self, address: int, size: int) -> bytes:
         offset = address - self.base_address
+        
+        # 디버깅 정보 추가
         if offset < 0 or offset >= len(self.code_bytes):
             self.output.write(f"[!] 오류: 주소 0x{address:x}가 범위를 벗어났습니다.")
+            self.output.write(f"    요청 주소: 0x{address:x}")
+            self.output.write(f"    베이스 주소: 0x{self.base_address:x}")
+            self.output.write(f"    계산된 오프셋: 0x{offset:x} ({offset} 바이트)")
+            self.output.write(f"    파일 크기: {len(self.code_bytes)} 바이트")
             return b''
         
         actual_size = min(size, len(self.code_bytes) - offset)
@@ -381,7 +416,18 @@ class ExecutionSimulator:
             next_address = self._simulate_instruction(insn)
             self.vm_state.print_registers()
             
-            if next_address:
+            # RET 명령어 특별 처리
+            if insn.mnemonic == 'ret':
+                if next_address is None or next_address == 0:
+                    self.output.write(f"        ❌ [RET 오류] 잘못된 반환 주소: 0x{next_address if next_address else 0:x}")
+                    self.output.write(f"        💡 스택에서 읽은 주소가 0x0이거나 None입니다.")
+                    self.output.write(f"        💡 실제 환경에서는 호출자 주소가 스택에 저장되어야 합니다.")
+                    self.output.write(f"        🛑 시뮬레이션 중단 (정상 종료)")
+                    break
+                else:
+                    self.output.write(f"        ✅ [RET 성공] 반환 주소로 점프: 0x{next_address:x}")
+                    current_address = next_address
+            elif next_address:
                 if next_address != insn.address + insn.size:
                     self.output.write(f"        🔄 점프: 0x{insn.address:x} → 0x{next_address:x}")
                 current_address = next_address
@@ -409,6 +455,10 @@ class ExecutionSimulator:
             return self._simulate_mov(op_str)
         elif mnemonic == 'movzx':
             return self._simulate_movzx(op_str)
+        elif mnemonic == 'movabs':
+            return self._simulate_movabs(op_str)
+        elif mnemonic == 'movsxd':
+            return self._simulate_movsxd(op_str)
         elif mnemonic == 'add':
             return self._simulate_add(op_str)
         elif mnemonic == 'sub':
@@ -425,8 +475,38 @@ class ExecutionSimulator:
             return self._simulate_shr(op_str)
         elif mnemonic == 'cmp':
             return self._simulate_cmp(op_str)
+        elif mnemonic == 'je':
+            return self._simulate_je(op_str)
+        elif mnemonic == 'jns':
+            return self._simulate_jns(op_str)
+        elif mnemonic == 'jne':
+            return self._simulate_jne(op_str)
+        elif mnemonic == 'jz':
+            return self._simulate_jz(op_str)
+        elif mnemonic == 'jnz':
+            return self._simulate_jnz(op_str)
         elif mnemonic == 'jmp':
             return self._simulate_jmp(op_str)
+        elif mnemonic == 'push':
+            return self._simulate_push(op_str)
+        elif mnemonic == 'pushfq':
+            return self._simulate_pushfq(op_str)
+        elif mnemonic == 'pop':
+            return self._simulate_pop(op_str)
+        elif mnemonic == 'popfq':
+            return self._simulate_popfq(op_str)
+        elif mnemonic == 'xchg':
+            return self._simulate_xchg(op_str)
+        elif mnemonic == 'ret':
+            return self._simulate_ret(op_str)
+        elif mnemonic.startswith('lock '):
+            # lock 접두사가 있는 명령어 처리
+            lock_insn = mnemonic[5:]  # "lock " 제거
+            if lock_insn == 'sub':
+                return self._simulate_lock_sub(op_str)
+            else:
+                self.output.write(f"        → 지원하지 않는 lock 명령어: {mnemonic}")
+                return None
         else:
             self.output.write(f"        → 지원하지 않는 명령어: {mnemonic}")
             return None
@@ -449,6 +529,34 @@ class ExecutionSimulator:
         self._set_operand_value(dst, src_val)
         
         self.output.write(f"        → {dst} = 0x{src_val:x}")
+        return None
+
+    def _simulate_movabs(self, op_str: str):
+        parts = [p.strip() for p in op_str.split(',')]
+        dst, src = parts[0], parts[1]
+        
+        src_val = self._get_operand_value(src)
+        self._set_operand_value(dst, src_val)
+        
+        self.output.write(f"        → {dst} = 0x{src_val:x}")
+        return None
+
+    def _simulate_movsxd(self, op_str: str):
+        """MOVSXD 명령어 시뮬레이션 - 32비트를 64비트로 부호 확장"""
+        parts = [p.strip() for p in op_str.split(',')]
+        dst, src = parts[0], parts[1]
+        
+        src_val = self._get_operand_value(src) & 0xFFFFFFFF  # 32비트로 마스크
+        
+        # 부호 확장: 32비트 MSB가 1이면 상위 32비트를 1로 채움
+        if src_val & 0x80000000:
+            extended_val = src_val | 0xFFFFFFFF00000000
+        else:
+            extended_val = src_val
+        
+        self._set_operand_value(dst, extended_val)
+        
+        self.output.write(f"        → {dst} = 부호확장(0x{src_val:x}) = 0x{extended_val:x}")
         return None
 
     def _simulate_add(self, op_str: str):
@@ -543,8 +651,82 @@ class ExecutionSimulator:
         src_val = self._get_operand_value(src)
         result = (dst_val - src_val) & 0xFFFFFFFFFFFFFFFF
         
-        self.output.write(f"        → {dst} - {src} = 0x{result:x}")
+        # 플래그 설정
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        
+        self.output.write(f"        → {dst} - {src} = 0x{result:x} (ZF={self.vm_state.flags['ZF']})")
         return None
+
+    def _simulate_je(self, op_str: str):
+        """JE (Jump if Equal) - ZF가 설정되어 있으면 점프"""
+        if self.vm_state.flags['ZF']:
+            if op_str.startswith('0x'):
+                target = int(op_str, 16)
+                self.output.write(f"        → 조건 점프 실행 (ZF=1): 0x{target:x}")
+                return target
+            else:
+                self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
+                return None
+        else:
+            self.output.write(f"        → 조건 점프 건너뜀 (ZF=0)")
+            return None
+
+    def _simulate_jns(self, op_str: str):
+        """JNS (Jump if Not Sign) - SF가 설정되어 있지 않으면 점프"""
+        if not self.vm_state.flags['SF']:
+            if op_str.startswith('0x'):
+                target = int(op_str, 16)
+                self.output.write(f"        → 조건 점프 실행 (SF=0): 0x{target:x}")
+                return target
+            else:
+                self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
+                return None
+        else:
+            self.output.write(f"        → 조건 점프 건너뜀 (SF=1)")
+            return None
+
+    def _simulate_jne(self, op_str: str):
+        """JNE (Jump if Not Equal) - ZF가 설정되어 있지 않으면 점프"""
+        if not self.vm_state.flags['ZF']:
+            if op_str.startswith('0x'):
+                target = int(op_str, 16)
+                self.output.write(f"        → 조건 점프 실행 (ZF=0): 0x{target:x}")
+                return target
+            else:
+                self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
+                return None
+        else:
+            self.output.write(f"        → 조건 점프 건너뜀 (ZF=1)")
+            return None
+
+    def _simulate_jz(self, op_str: str):
+        """JZ (Jump if Zero) - ZF가 설정되어 있으면 점프"""
+        if self.vm_state.flags['ZF']:
+            if op_str.startswith('0x'):
+                target = int(op_str, 16)
+                self.output.write(f"        → 조건 점프 실행 (ZF=1): 0x{target:x}")
+                return target
+            else:
+                self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
+                return None
+        else:
+            self.output.write(f"        → 조건 점프 건너뜀 (ZF=0)")
+            return None
+
+    def _simulate_jnz(self, op_str: str):
+        """JNZ (Jump if Not Zero) - ZF가 설정되어 있지 않으면 점프"""
+        if not self.vm_state.flags['ZF']:
+            if op_str.startswith('0x'):
+                target = int(op_str, 16)
+                self.output.write(f"        → 조건 점프 실행 (ZF=0): 0x{target:x}")
+                return target
+            else:
+                self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
+                return None
+        else:
+            self.output.write(f"        → 조건 점프 건너뜀 (ZF=1)")
+            return None
 
     def _simulate_jmp(self, op_str: str):
         if op_str.startswith('0x'):
@@ -555,6 +737,107 @@ class ExecutionSimulator:
             target = self.vm_state.get_register(op_str)
             self.output.write(f"        → 간접 점프: {op_str} (0x{target:x})")
             return target
+        return None
+
+    def _simulate_push(self, op_str: str):
+        """PUSH 명령어 시뮬레이션 - 스택에 값 푸시"""
+        src_val = self._get_operand_value(op_str.strip())
+        
+        # RSP 감소 후 메모리에 값 저장
+        self.vm_state.registers['rsp'] -= 8
+        self.vm_state.set_memory(self.vm_state.registers['rsp'], src_val)
+        
+        self.output.write(f"        → push {op_str} (0x{src_val:x}) to [0x{self.vm_state.registers['rsp']:x}]")
+        return None
+
+    def _simulate_pushfq(self, op_str: str):
+        """PUSHFQ 명령어 시뮬레이션 - 스택에 플래그 레지스터 푸시"""
+        # 플래그 레지스터 값 읽기
+        flags_val = self.vm_state.flags['ZF'] | (self.vm_state.flags['SF'] << 1) | (self.vm_state.flags['CF'] << 2)
+        
+        # RSP 감소 후 메모리에 플래그 값 저장
+        self.vm_state.registers['rsp'] -= 8
+        self.vm_state.set_memory(self.vm_state.registers['rsp'], flags_val)
+        
+        self.output.write(f"        → pushfq (0x{flags_val:x}) to [0x{self.vm_state.registers['rsp']:x}]")
+        return None
+
+    def _simulate_pop(self, op_str: str):
+        """POP 명령어 시뮬레이션 - 스택에서 값 팝"""
+        # 메모리에서 값 읽기
+        val, _ = self.vm_state.get_memory(self.vm_state.registers['rsp'])
+        
+        # 대상에 값 저장
+        self._set_operand_value(op_str.strip(), val)
+        
+        # RSP 증가
+        self.vm_state.registers['rsp'] += 8
+        
+        self.output.write(f"        → pop {op_str} (0x{val:x}) from [0x{self.vm_state.registers['rsp']-8:x}]")
+        return None
+
+    def _simulate_popfq(self, op_str: str):
+        """POPFQ 명령어 시뮬레이션 - 스택에서 플래그 레지스터 팝"""
+        # 스택에서 플래그 값 읽기
+        flags_val, _ = self.vm_state.get_memory(self.vm_state.registers['rsp'])
+        
+        # RSP 증가
+        self.vm_state.registers['rsp'] += 8
+        
+        # 플래그 레지스터 복원 (간단히 플래그들을 설정)
+        self.vm_state.flags['ZF'] = (flags_val & 0x40) != 0
+        self.vm_state.flags['SF'] = (flags_val & 0x80) != 0
+        self.vm_state.flags['CF'] = (flags_val & 0x1) != 0
+        
+        self.output.write(f"        → popfq (0x{flags_val:x}) from [0x{self.vm_state.registers['rsp']-8:x}]")
+        return None
+
+    def _simulate_xchg(self, op_str: str):
+        """XCHG 명령어 시뮬레이션 - 두 오퍼랜드 값 교환"""
+        parts = [p.strip() for p in op_str.split(',')]
+        dst, src = parts[0], parts[1]
+        
+        dst_val = self._get_operand_value(dst)
+        src_val = self._get_operand_value(src)
+        
+        # 값 교환
+        self._set_operand_value(dst, src_val)
+        self._set_operand_value(src, dst_val)
+        
+        self.output.write(f"        → xchg {dst}, {src} (0x{dst_val:x} ↔ 0x{src_val:x})")
+        return None
+
+    def _simulate_ret(self, op_str: str):
+        """RET 명령어 시뮬레이션 - 스택에서 반환 주소 팝 후 점프"""
+        # 스택에서 반환 주소 읽기
+        ret_addr, _ = self.vm_state.get_memory(self.vm_state.registers['rsp'])
+        
+        # RSP 증가 (반환 주소 팝)
+        self.vm_state.registers['rsp'] += 8
+        
+        # 옵션 파라미터가 있으면 추가로 RSP 증가 (스택 정리)
+        if op_str.strip():
+            try:
+                stack_adjust = int(op_str.strip(), 16) if op_str.strip().startswith('0x') else int(op_str.strip())
+                self.vm_state.registers['rsp'] += stack_adjust
+                self.output.write(f"        → ret {op_str} (0x{ret_addr:x}) + stack adjust 0x{stack_adjust:x}")
+            except ValueError:
+                self.output.write(f"        → ret (0x{ret_addr:x})")
+        else:
+            self.output.write(f"        → ret (0x{ret_addr:x})")
+        
+        return ret_addr
+
+    def _simulate_lock_sub(self, op_str: str):
+        parts = [p.strip() for p in op_str.split(',')]
+        dst, src = parts[0], parts[1]
+        
+        dst_val = self._get_operand_value(dst)
+        src_val = self._get_operand_value(src)
+        result = (dst_val - src_val) & 0xFFFFFFFFFFFFFFFF
+        
+        self._set_operand_value(dst, result)
+        self.output.write(f"        → {dst} = 0x{dst_val:x} - 0x{src_val:x} = 0x{result:x}")
         return None
 
     def _get_operand_value(self, operand: str) -> int:
@@ -725,8 +1008,8 @@ def get_simulation_settings():
 if __name__ == "__main__":
     # 설정
     binary_file_path = "L2.bin"
-    BASE_ADDRESS = 0x7ff64dbcf6f4
-    ENTRY_ADDRESS = 0x7ff64dbfc67a
+    BASE_ADDRESS = 0x7ff675881000
+    ENTRY_ADDRESS = 0x7ff67599dcc9
     
     # *** 초기 스택 레지스터 값 설정 (디버거에서 확인한 실제 값 사용) ***
     # rbp와 rsp는 독립적으로 설정 가능합니다 (서로 다른 값 가능)
