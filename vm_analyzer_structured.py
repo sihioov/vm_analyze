@@ -92,14 +92,21 @@ class VMState:
         default_stack_addr = 0x7fff12340000
         
         self.registers = {
-            'rax': 0x7ff675a8c059, 'rbx': 0x5d8, 'rcx': 0x7ff675880000, 'rdx': 0x20ba81,
-            'rsi': 0x7ff67597186a, 'rdi': 0, 
-            #'rbp': initial_rbp if initial_rbp is not None else default_stack_addr,
-            #'rsp': initial_rsp if initial_rsp is not None else default_stack_addr,
-            'rbp': 0x7ff67597186a,
-            'rsp': 0x39587cf840,  
-            'r8': 0x7ff675880000, 'r9': 0x122d0, 'r10': 0x35b63ef729,
-            'r11': 0x35b63ef2f0, 'r12': 0, 'r13': 0, 'r14': 0, 'r15': 0
+            'rax': 0x7ff7bc011962, 'rbx': 0x7ff1b801a444, 'rcx': 0x7ff7bc011956, 'rdx':0xc4,
+            'rsi': 0x21, 'rdi': 0x12,             
+            'rbp': 0x7ff7bc01186a,
+            'rsp': 0x90ddd9f520,  
+            'r8': 0x7ff7bc011956, 'r9': 0x34b, 'r10': 0x7ff7bc03e48f,
+            'r11': 0xffffffffffffffd9, 'r12': 0x7fffff37, 'r13': 0x7ff7bc011937, 'r14': 0x7ff7bc0118c6, 'r15': 0x7fffff37
+
+            # 'rax': 0x7ff7bc12c059, 'rbx': 0x5d8, 'rcx': 0x7ff7bbf20000, 'rdx':0x20ba81,
+            # 'rsi': 0x7ff7bc054c32, 'rdi': 0x49,             
+            # 'rbp': 0x7ff7bc01186a,
+            # 'rsp': 0xdce09dfb50,  
+            # 'r8': 0x7ff7bbf20000, 'r9': 0x122d0, 'r10': 0xdce09df7d9,
+            # 'r11': 0xdce09df3a0, 'r12': 0, 'r13': 0, 'r14': 0, 'r15': 0
+
+
             # 'rax': 0, 'rbx': 0, 'rcx': 0, 'rdx': 0,
             # 'rsi': 0, 'rdi': 0, 
             # 'rbp': initial_rbp if initial_rbp is not None else default_stack_addr,
@@ -108,15 +115,53 @@ class VMState:
             # 'r11': 0, 'r12': 0, 'r13': 0, 'r14': 0, 'r15': 0
         }
         self.memory = {
-            0x7ff67597189d: (0x0, False),
-            0x7ff6759718c7: (0xa34f7a7a, False),
-            0x7ff675971962: (0x0, False),
-            0x7ff6759719da: (0x0, False),
-            0x7ff6759718cb: (0x75a38749, False),
-            0x7ff6759718e7: (0x7ff675a8ba81, False),
-            0x7ff675a8ba81: (0x7ff67599e17e, False),
+            0x7ff7bc0118e7: (0x7ff7bc12ba81, False),
+            0x7ff7bc0118c6: (0x02bf1cbe91c11b55, False),
+            0x7ff7bc0119aa: (0x90ddd9f6f000, False),
+            0x7ff7bc011937: (0x097030000000008f, False),
+            0x7ff7bc01d45c: (0x497fdc9cbbf58149, False),
+            0x7ff7bc0118cb: (0x7ff7bc02bf1c, False),
+            0x7ff7bc02bf1c: (0x0e97c6570003842f, False),
+            0x7ff7bc02bf24: (0xd01bd3f57a012866, False),
+            0x7ff7bc01199a: (0x0, False),
+            0x7ff7bc01187c: (0x0fdf, False),
+            0x7ff7bc02bf20: (0x7a0128660e97c657, False),
+            0x7ff7bc02bf25: (0x09d01bd3f57a0128, False),
+            0x7ff7bc02bf27: (0x085509d01bd3f57a, False),
+            0x7ff7bc130ec9: (0xe9000003ece9e889, False),
+            0x7ff7bc0216ab: (0xf62949000003b1e9, False),
+            0x7ff7bc12bad9: (0x7ff7bc01f053, False),
+            0x7ff7bc06434f: (0x6801286f3aa14df8, False),
+            0x7ff7bc064353: (0xffd633516801286f, False),
+            0x7ff7bc064358: (0x0f0128ffffffd633, False),
+            0x7ff7bc064354: (0xffffd63351680128, False),
+            0x7ff7bc064356: (0x28ffffffd6335168, False),
+            0x7ff7bc0119c5: (0x3fe9, False),
+            0x7ff7bc154401: (0x0000006e00000000, False),
+            0x7ff7bc06434b: (0x3aa14df80000000e, False),
+            0x7ff7bc12bae9: (0x7ff7bbff43df, False),
+            0x7ff7bc011956: (0xe7db3efd7fcf793f, False),
+            # 0x7ff7bc01189d: (0, False),
+            # 0x7ff7bc0119da: (0, False),
+            # 0x7ff7bc0118cb: (0x7ff7bc0d8749, False),
+            # 0x7ff7bc0118e7: (0x7ff7bc12ba81, False),
+            # 0x7ff7bc12ba81: (0x7ff7bc03e17e, False),
+            # 0x7ff7bc0118c7: (0, False),
+            # 0x7ff7bc42b8f8: (0x75731d754bdc69c3, False),
+            # 0x9bdd2ff748: (0x68745f5f00746e63, False),
+            # 0x9bdd2ff6c0: (0x6e6f636c5f5f0065, False),
+            # 0x9bdd2ff6e8: (0x696f69785f5f0063, False),
+
+
+            # 0x7ff67597189d: (0x0, False),
+            # 0x7ff6759718c7: (0xa34f7a7a, False),
+            # 0x7ff675971962: (0x0, False),
+            # 0x7ff6759719da: (0x0, False),
+            # 0x7ff6759718cb: (0x75a38749, False),
+            # 0x7ff6759718e7: (0x7ff675a8ba81, False),
+            # 0x7ff675a8ba81: (0x7ff67599e17e, False),
             # 스택 메모리: 현재 RSP 위치에 테스트용 반환 주소 설정
-            0x39587cf840: (0x7ff67597186a, False),  # 현재 RSP에 반환 주소 설정 (임시)
+            # 0x39587cf840: (0x7ff67597186a, False),  # 현재 RSP에 반환 주소 설정 (임시)
             #0x7ff67599e17e: (0x7ff67597186a, False),
             }  # {address: (value, is_estimated)}
         self.flags = {
@@ -391,60 +436,135 @@ class ExecutionSimulator:
     """명령어 실행을 시뮬레이션합니다."""
     
     def __init__(self, disasm_engine: DisassemblyEngine, vm_state: VMState, output_writer: OutputWriter = None):
-        self.disasm = disasm_engine
+        self.disasm_engine = disasm_engine
         self.vm_state = vm_state
         self.output = output_writer or OutputWriter()
+        self.jump_counts = {}  # 점프 대상 주소별 방문 횟수 추적
+        self.memory_changes = {}  # 메모리 변화 추적
+        self.initial_registers = {}  # 초기 레지스터 값
+        self.final_registers = {}  # 최종 레지스터 값
 
     def simulate(self, entry_address: int, max_instructions: int = 200):
+        """명령어 실행을 시뮬레이션합니다."""
+        self.output.write(f"[*] 실행 시뮬레이션을 시작합니다...")
+        self.output.write(f"[*] 설정: 최대 {max_instructions}개 명령어")
         self.output.write(f"[*] 실행 시뮬레이션 시작: 0x{entry_address:x}")
         self.output.write("=" * 60)
+        
+        # 초기 상태 저장
+        self.initial_registers = self.vm_state.registers.copy()
         
         current_address = entry_address
         instruction_count = 0
         
-        while instruction_count < max_instructions:
-            instructions = self.disasm.disassemble_at(current_address, size=0x20)
-            if not instructions:
-                self.output.write(f"[!] 명령어를 찾을 수 없습니다: 0x{current_address:x}")
-                break
+        try:
+            while instruction_count < max_instructions and current_address is not None:
+                instruction_count += 1
                 
-            insn = instructions[0]
-            instruction_count += 1
-            
-            self.output.write(f"{instruction_count:3d}. 0x{insn.address:x}: {insn.mnemonic} {insn.op_str}")
-            
-            next_address = self._simulate_instruction(insn)
-            self.vm_state.print_registers()
-            
-            # RET 명령어 특별 처리
-            if insn.mnemonic == 'ret':
-                if next_address is None or next_address == 0:
-                    self.output.write(f"        ❌ [RET 오류] 잘못된 반환 주소: 0x{next_address if next_address else 0:x}")
-                    self.output.write(f"        💡 스택에서 읽은 주소가 0x0이거나 None입니다.")
-                    self.output.write(f"        💡 실제 환경에서는 호출자 주소가 스택에 저장되어야 합니다.")
-                    self.output.write(f"        🛑 시뮬레이션 중단 (정상 종료)")
+                # 디스어셈블리
+                instructions = self.disasm_engine.disassemble_at(current_address, 16)
+                if not instructions:
+                    self.output.write(f"[!] 주소 0x{current_address:x}에서 디스어셈블리 실패")
                     break
-                else:
-                    self.output.write(f"        ✅ [RET 성공] 반환 주소로 점프: 0x{next_address:x}")
-                    current_address = next_address
-            elif next_address:
-                if next_address != insn.address + insn.size:
-                    self.output.write(f"        🔄 점프: 0x{insn.address:x} → 0x{next_address:x}")
-                current_address = next_address
-            else:
-                current_address = insn.address + insn.size
                 
-            # 간접 점프 감지 개선
-            if insn.mnemonic == 'jmp':
-                # 직접 점프가 아닌 경우 (레지스터나 메모리 참조)
-                if not insn.op_str.startswith('0x'):
-                    self.output.write(f"🔴 [간접 점프 감지] {insn.op_str}")
-                    # 시뮬레이션을 종료하지 않고 계속 진행
-                    self.output.write(f"[*] 간접 점프 계속 진행: {insn.op_str}")
+                insn = instructions[0]
                 
-            self.output.write("-" * 40)
+                # 명령어 실행
+                self.output.write(f"{instruction_count:3d}. 0x{insn.address:x}: {insn.mnemonic} {insn.op_str}")
+                
+                try:
+                    # 명령어 시뮬레이션 실행
+                    next_address = self._simulate_instruction(insn)
+                    
+                    # CALL 명령어인 경우 반환 주소를 올바르게 설정
+                    if insn.mnemonic.lower() == 'call' and next_address is not None:
+                        return_address = current_address + insn.size
+                        # 스택에 올바른 반환 주소 설정
+                        current_rsp = self.vm_state.get_register('rsp')
+                        self.vm_state.set_memory(current_rsp, return_address)
+                        self.output.write(f"        📞 [CALL 수정] 올바른 반환주소 0x{return_address:x} 설정")
+                    
+                    # 레지스터 상태 출력
+                    self.vm_state.print_registers()
+                    
+                    if next_address is not None and next_address != current_address + insn.size:
+                        # 점프가 발생한 경우
+                        visit_info = ""
+                        if next_address in self.jump_counts:
+                            visit_info = f" (#{self.jump_counts[next_address]}번째 방문)"
+                        self.output.write(f"        🔄 점프: 0x{current_address:x} → 0x{next_address:x}{visit_info}")
+                        current_address = next_address
+                    else:
+                        # 다음 명령어로 이동
+                        current_address += insn.size
+                    
+                    self.output.write("-" * 40)
+                    
+                except Exception as e:
+                    self.output.write(f"        ❌ [실행 오류] {e}")
+                    break
+                    
+        except KeyboardInterrupt:
+            self.output.write("\n[!] 사용자에 의해 중단됨")
+        
+        # 최종 상태 저장 및 분석
+        self.final_registers = self.vm_state.registers.copy()
+        self._analyze_execution_results(instruction_count)
         
         self.output.write(f"\n[*] 시뮬레이션 완료 - 총 {instruction_count}개 명령어 실행")
+
+    def _analyze_execution_results(self, instruction_count: int):
+        """VM 실행 결과를 분석합니다."""
+        self.output.write("\n" + "=" * 60)
+        self.output.write("📊 **VM 실행 결과 분석**")
+        self.output.write("=" * 60)
+        
+        # 1. 레지스터 변화 분석
+        self.output.write("\n🔄 **레지스터 변화 분석:**")
+        changed_regs = []
+        for reg in self.initial_registers:
+            initial = self.initial_registers.get(reg, 0)
+            final = self.final_registers.get(reg, 0)
+            if initial != final:
+                changed_regs.append((reg, initial, final))
+        
+        if changed_regs:
+            for reg, initial, final in changed_regs:
+                self.output.write(f"  {reg}: 0x{initial:x} → 0x{final:x}")
+        else:
+            self.output.write("  변화된 레지스터 없음")
+        
+        # 2. 메모리 변화 분석
+        self.output.write("\n💾 **메모리 변화 분석:**")
+        if self.vm_state.memory:
+            for addr, (value, is_estimated) in self.vm_state.memory.items():
+                status = "추정값" if is_estimated else "설정값"
+                self.output.write(f"  [0x{addr:x}] = 0x{value:x} ({status})")
+        else:
+            self.output.write("  메모리 변화 없음")
+        
+        # 3. 실행 패턴 분석
+        self.output.write(f"\n📈 **실행 통계:**")
+        self.output.write(f"  총 실행 명령어: {instruction_count}개")
+        self.output.write(f"  메모리 접근: {len(self.memory_changes)}개 주소")
+
+        # 점프 횟수 통계 추가
+        if self.jump_counts:
+            self.output.write(f"")
+            self.output.write(f"🔄 **점프 횟수 통계:**")
+            # 방문 횟수별로 정렬
+            sorted_jumps = sorted(self.jump_counts.items(), key=lambda x: x[1], reverse=True)
+            for addr, count in sorted_jumps[:10]:  # 상위 10개만 표시
+                self.output.write(f"  0x{addr:x}: {count}회 방문")
+            
+            if len(sorted_jumps) > 10:
+                self.output.write(f"  ... 및 {len(sorted_jumps) - 10}개 주소 더")
+
+        self.output.write(f"")
+
+        # 4. VM 목적 추정
+        self.output.write(f"\n🎯 **VM 목적 추정:**")
+        self._estimate_vm_purpose(changed_regs)
 
     def _simulate_instruction(self, insn):
         """개별 명령어 시뮬레이션"""
@@ -475,6 +595,8 @@ class ExecutionSimulator:
             return self._simulate_shr(op_str)
         elif mnemonic == 'cmp':
             return self._simulate_cmp(op_str)
+        elif mnemonic == 'test':
+            return self._simulate_test(op_str)
         elif mnemonic == 'je':
             return self._simulate_je(op_str)
         elif mnemonic == 'jns':
@@ -499,14 +621,20 @@ class ExecutionSimulator:
             return self._simulate_xchg(op_str)
         elif mnemonic == 'ret':
             return self._simulate_ret(op_str)
-        elif mnemonic.startswith('lock '):
+        elif mnemonic == 'neg':
+            return self._simulate_neg(op_str)
+        elif mnemonic.startswith('lock'):
             # lock 접두사가 있는 명령어 처리
-            lock_insn = mnemonic[5:]  # "lock " 제거
-            if lock_insn == 'sub':
+            if 'sub' in mnemonic:
                 return self._simulate_lock_sub(op_str)
             else:
+                actual_mnemonic = mnemonic.split()[1] if len(mnemonic.split()) > 1 else mnemonic[4:]
                 self.output.write(f"        → 지원하지 않는 lock 명령어: {mnemonic}")
                 return None
+        elif mnemonic == 'jb':
+            return self._simulate_jb(op_str)
+        elif mnemonic == 'call':
+            return self._simulate_call(op_str)
         else:
             self.output.write(f"        → 지원하지 않는 명령어: {mnemonic}")
             return None
@@ -560,18 +688,42 @@ class ExecutionSimulator:
         return None
 
     def _simulate_add(self, op_str: str):
+        """ADD 명령어 시뮬레이션"""
         parts = [p.strip() for p in op_str.split(',')]
         dst, src = parts[0], parts[1]
         
         dst_val = self._get_operand_value(dst)
         src_val = self._get_operand_value(src)
-        result = (dst_val + src_val) & 0xFFFFFFFFFFFFFFFF
+        
+        # 64비트 결과와 오버플로우 체크
+        result_full = dst_val + src_val
+        result = result_full & 0xFFFFFFFFFFFFFFFF
+        
+        # CF 플래그: 64비트 오버플로우 발생 시 설정
+        self.vm_state.flags['CF'] = (result_full > 0xFFFFFFFFFFFFFFFF)
+        # ZF와 SF 플래그 설정
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
         
         self._set_operand_value(dst, result)
-        self.output.write(f"        → {dst} = 0x{dst_val:x} + 0x{src_val:x} = 0x{result:x}")
+        
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['CF']: flag_str.append('CF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        
+        # 스택 포인터 특별 처리
+        if dst.lower() == 'rsp':
+            self.output.write(f"        → rsp = 0x{dst_val:x} + 0x{src_val:x} = 0x{result:x}{flag_info}")
+        else:
+            self.output.write(f"        → {dst} = 0x{dst_val:x} + 0x{src_val:x} = 0x{result:x}{flag_info}")
         return None
 
     def _simulate_sub(self, op_str: str):
+        """SUB 명령어 시뮬레이션"""
         parts = [p.strip() for p in op_str.split(',')]
         dst, src = parts[0], parts[1]
         
@@ -579,8 +731,27 @@ class ExecutionSimulator:
         src_val = self._get_operand_value(src)
         result = (dst_val - src_val) & 0xFFFFFFFFFFFFFFFF
         
+        # 플래그 설정
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        # CF 플래그: dst < src (부호 없는 비교)일 때 설정 (언더플로우)
+        self.vm_state.flags['CF'] = (dst_val < src_val)
+        
         self._set_operand_value(dst, result)
-        self.output.write(f"        → {dst} = 0x{dst_val:x} - 0x{src_val:x} = 0x{result:x}")
+        
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['CF']: flag_str.append('CF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        
+        # 스택 포인터 특별 처리
+        if dst.lower() == 'rsp':
+            self.output.write(f"        → rsp = 0x{dst_val:x} - 0x{src_val:x} = 0x{result:x}{flag_info}")
+        else:
+            self.output.write(f"        → {dst} = 0x{dst_val:x} - 0x{src_val:x} = 0x{result:x}{flag_info}")
         return None
 
     def _simulate_xor(self, op_str: str):
@@ -654,16 +825,59 @@ class ExecutionSimulator:
         # 플래그 설정
         self.vm_state.flags['ZF'] = (result == 0)
         self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        # CF 플래그: dst < src (부호 없는 비교)일 때 설정
+        self.vm_state.flags['CF'] = (dst_val < src_val)
         
-        self.output.write(f"        → {dst} - {src} = 0x{result:x} (ZF={self.vm_state.flags['ZF']})")
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['CF']: flag_str.append('CF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        self.output.write(f"        → {dst} - {src} = 0x{result:x}{flag_info}")
         return None
+
+    def _simulate_test(self, op_str: str):
+        parts = [p.strip() for p in op_str.split(',')]
+        dst, src = parts[0], parts[1]
+        
+        dst_val = self._get_operand_value(dst)
+        src_val = self._get_operand_value(src)
+        result = (dst_val & src_val) & 0xFFFFFFFFFFFFFFFF
+        
+        # 플래그 설정
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        # TEST 명령어는 CF를 항상 0으로 설정
+        self.vm_state.flags['CF'] = False
+        
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['CF']: flag_str.append('CF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        self.output.write(f"        → {dst} & {src} = 0x{result:x}{flag_info}")
+        return None
+
+    def _track_jump(self, target_address: int) -> str:
+        """점프 횟수를 추적하고 방문 정보를 반환합니다"""
+        if target_address in self.jump_counts:
+            self.jump_counts[target_address] += 1
+            visit_info = f"(#{self.jump_counts[target_address]}번째 방문)"
+        else:
+            self.jump_counts[target_address] = 1
+            visit_info = "(첫 방문)"
+        return visit_info
 
     def _simulate_je(self, op_str: str):
         """JE (Jump if Equal) - ZF가 설정되어 있으면 점프"""
         if self.vm_state.flags['ZF']:
             if op_str.startswith('0x'):
                 target = int(op_str, 16)
-                self.output.write(f"        → 조건 점프 실행 (ZF=1): 0x{target:x}")
+                self.output.write(f"        → 조건 점프 실행 (ZF=1): 0x{target:x} {self._track_jump(target)}")
                 return target
             else:
                 self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
@@ -677,7 +891,7 @@ class ExecutionSimulator:
         if not self.vm_state.flags['SF']:
             if op_str.startswith('0x'):
                 target = int(op_str, 16)
-                self.output.write(f"        → 조건 점프 실행 (SF=0): 0x{target:x}")
+                self.output.write(f"        → 조건 점프 실행 (SF=0): 0x{target:x} {self._track_jump(target)}")
                 return target
             else:
                 self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
@@ -691,7 +905,7 @@ class ExecutionSimulator:
         if not self.vm_state.flags['ZF']:
             if op_str.startswith('0x'):
                 target = int(op_str, 16)
-                self.output.write(f"        → 조건 점프 실행 (ZF=0): 0x{target:x}")
+                self.output.write(f"        → 조건 점프 실행 (ZF=0): 0x{target:x} {self._track_jump(target)}")
                 return target
             else:
                 self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
@@ -705,7 +919,7 @@ class ExecutionSimulator:
         if self.vm_state.flags['ZF']:
             if op_str.startswith('0x'):
                 target = int(op_str, 16)
-                self.output.write(f"        → 조건 점프 실행 (ZF=1): 0x{target:x}")
+                self.output.write(f"        → 조건 점프 실행 (ZF=1): 0x{target:x} {self._track_jump(target)}")
                 return target
             else:
                 self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
@@ -719,7 +933,7 @@ class ExecutionSimulator:
         if not self.vm_state.flags['ZF']:
             if op_str.startswith('0x'):
                 target = int(op_str, 16)
-                self.output.write(f"        → 조건 점프 실행 (ZF=0): 0x{target:x}")
+                self.output.write(f"        → 조건 점프 실행 (ZF=0): 0x{target:x} {self._track_jump(target)}")
                 return target
             else:
                 self.output.write(f"        → 지원하지 않는 점프 대상: {op_str}")
@@ -731,65 +945,98 @@ class ExecutionSimulator:
     def _simulate_jmp(self, op_str: str):
         if op_str.startswith('0x'):
             target = int(op_str, 16)
-            self.output.write(f"        → 점프: 0x{target:x}")
+            self.output.write(f"        → 점프: 0x{target:x} {self._track_jump(target)}")
             return target
         elif op_str in self.vm_state.registers:
             target = self.vm_state.get_register(op_str)
-            self.output.write(f"        → 간접 점프: {op_str} (0x{target:x})")
+            self.output.write(f"        → 간접 점프: {op_str} (0x{target:x}) {self._track_jump(target)}")
             return target
         return None
+
+    def _simulate_jb(self, op_str: str):
+        """JB (Jump if Below) - CF가 설정되어 있으면 점프"""
+        if self.vm_state.flags['CF']:
+            if op_str.startswith('0x'):
+                target = int(op_str, 16)
+                self.output.write(f"        → 조건 점프 실행 (CF=1): 0x{target:x} {self._track_jump(target)}")
+                return target
+            else:
+                self.output.write(f"        → 조건 점프 건너뜀 (CF=0)")
+                return None
+        else:
+            self.output.write(f"        → 조건 점프 건너뜀 (CF=0)")
+            return None
 
     def _simulate_push(self, op_str: str):
         """PUSH 명령어 시뮬레이션 - 스택에 값 푸시"""
         src_val = self._get_operand_value(op_str.strip())
         
         # RSP 감소 후 메모리에 값 저장
-        self.vm_state.registers['rsp'] -= 8
-        self.vm_state.set_memory(self.vm_state.registers['rsp'], src_val)
+        rsp = self.vm_state.get_register('rsp')
+        rsp -= 8
+        self.vm_state.set_register('rsp', rsp)
+        self.vm_state.set_memory(rsp, src_val)
         
-        self.output.write(f"        → push {op_str} (0x{src_val:x}) to [0x{self.vm_state.registers['rsp']:x}]")
+        self.output.write(f"        → push {op_str} (0x{src_val:x}) to [0x{rsp:x}]")
         return None
 
     def _simulate_pushfq(self, op_str: str):
-        """PUSHFQ 명령어 시뮬레이션 - 스택에 플래그 레지스터 푸시"""
-        # 플래그 레지스터 값 읽기
-        flags_val = self.vm_state.flags['ZF'] | (self.vm_state.flags['SF'] << 1) | (self.vm_state.flags['CF'] << 2)
+        """PUSHFQ 명령어 시뮬레이션 - 플래그 레지스터 푸시"""
+        # 플래그 값 계산 (간단한 예시)
+        flags_val = 0
+        if self.vm_state.flags.get('ZF', False): flags_val |= 0x40
+        if self.vm_state.flags.get('SF', False): flags_val |= 0x80
+        if self.vm_state.flags.get('CF', False): flags_val |= 0x1
         
-        # RSP 감소 후 메모리에 플래그 값 저장
-        self.vm_state.registers['rsp'] -= 8
-        self.vm_state.set_memory(self.vm_state.registers['rsp'], flags_val)
+        # RSP 감소 후 플래그 저장
+        rsp = self.vm_state.get_register('rsp')
+        rsp -= 8
+        self.vm_state.set_register('rsp', rsp)
+        self.vm_state.set_memory(rsp, flags_val)
         
-        self.output.write(f"        → pushfq (0x{flags_val:x}) to [0x{self.vm_state.registers['rsp']:x}]")
+        self.output.write(f"        → pushfq (0x{flags_val:x}) to [0x{rsp:x}]")
         return None
 
     def _simulate_pop(self, op_str: str):
         """POP 명령어 시뮬레이션 - 스택에서 값 팝"""
-        # 메모리에서 값 읽기
-        val, _ = self.vm_state.get_memory(self.vm_state.registers['rsp'])
+        # 스택에서 값 읽기
+        rsp = self.vm_state.get_register('rsp')
+        val, _ = self.vm_state.get_memory(rsp)
         
-        # 대상에 값 저장
+        # 대상 오퍼랜드에 값 저장
         self._set_operand_value(op_str.strip(), val)
         
         # RSP 증가
-        self.vm_state.registers['rsp'] += 8
+        rsp += 8
+        self.vm_state.set_register('rsp', rsp)
         
-        self.output.write(f"        → pop {op_str} (0x{val:x}) from [0x{self.vm_state.registers['rsp']-8:x}]")
+        self.output.write(f"        → pop {op_str} (0x{val:x}) from [0x{rsp-8:x}]")
         return None
 
     def _simulate_popfq(self, op_str: str):
-        """POPFQ 명령어 시뮬레이션 - 스택에서 플래그 레지스터 팝"""
+        """POPFQ 명령어 시뮬레이션 - 스택에서 플래그 팝"""
         # 스택에서 플래그 값 읽기
-        flags_val, _ = self.vm_state.get_memory(self.vm_state.registers['rsp'])
+        rsp = self.vm_state.get_register('rsp')
+        flags_val, _ = self.vm_state.get_memory(rsp)
+        
+        # 플래그 레지스터 설정
+        self.vm_state.flags['ZF'] = bool(flags_val & 0x40)
+        self.vm_state.flags['SF'] = bool(flags_val & 0x80)
+        self.vm_state.flags['CF'] = bool(flags_val & 0x1)
         
         # RSP 증가
-        self.vm_state.registers['rsp'] += 8
+        rsp += 8
+        self.vm_state.set_register('rsp', rsp)
         
-        # 플래그 레지스터 복원 (간단히 플래그들을 설정)
-        self.vm_state.flags['ZF'] = (flags_val & 0x40) != 0
-        self.vm_state.flags['SF'] = (flags_val & 0x80) != 0
-        self.vm_state.flags['CF'] = (flags_val & 0x1) != 0
+        # 디버그 정보 출력
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['CF']: flag_str.append('CF')
         
-        self.output.write(f"        → popfq (0x{flags_val:x}) from [0x{self.vm_state.registers['rsp']-8:x}]")
+        self.output.write(f"        → popfq (0x{flags_val:x}) from [0x{rsp-8:x}]")
+        if flag_str:
+            self.output.write(f"        → 설정된 플래그: {', '.join(flag_str)}")
         return None
 
     def _simulate_xchg(self, op_str: str):
@@ -808,27 +1055,98 @@ class ExecutionSimulator:
         return None
 
     def _simulate_ret(self, op_str: str):
-        """RET 명령어 시뮬레이션 - 스택에서 반환 주소 팝 후 점프"""
-        # 스택에서 반환 주소 읽기
-        ret_addr, _ = self.vm_state.get_memory(self.vm_state.registers['rsp'])
-        
-        # RSP 증가 (반환 주소 팝)
-        self.vm_state.registers['rsp'] += 8
-        
-        # 옵션 파라미터가 있으면 추가로 RSP 증가 (스택 정리)
+        """RET 명령어 시뮬레이션"""
+        # 스택 조정값 파싱
+        stack_adjust = 0
         if op_str.strip():
             try:
                 stack_adjust = int(op_str.strip(), 16) if op_str.strip().startswith('0x') else int(op_str.strip())
-                self.vm_state.registers['rsp'] += stack_adjust
-                self.output.write(f"        → ret {op_str} (0x{ret_addr:x}) + stack adjust 0x{stack_adjust:x}")
             except ValueError:
-                self.output.write(f"        → ret (0x{ret_addr:x})")
-        else:
-            self.output.write(f"        → ret (0x{ret_addr:x})")
+                self.output.write(f"        [RET 경고] 스택 조정값 파싱 실패: {op_str}")
         
-        return ret_addr
+        # 스택에서 반환 주소 읽기
+        rsp = self.vm_state.get_register('rsp')
+        ret_addr, is_estimated = self.vm_state.get_memory(rsp)
+        
+        # RSP 조정 (반환 주소 pop + 추가 조정)
+        self.vm_state.set_register('rsp', rsp + 8 + stack_adjust)
+        
+        self.output.write(f"        → ret {stack_adjust} (0x{ret_addr:x}) + stack adjust 0x{stack_adjust:x}")
+        
+        # VM 환경에서의 RET 처리
+        if ret_addr == 0 or ret_addr is None:
+            self.output.write(f"        🔍 [VM RET] 반환 주소 0x0 감지 - VM 종료 지점일 수 있음")
+            self.output.write(f"        💡 VM에서 ret 0은 종료 또는 디스패처 복귀를 의미할 수 있습니다")
+            
+            # VM 컨텍스트에서 대안적 처리 시도
+            # 1. VM 상태에서 다음 실행 주소 찾기
+            possible_next = self._find_vm_next_address()
+            if possible_next:
+                self.output.write(f"        🎯 [VM 추정] 다음 실행 가능 주소: 0x{possible_next:x} {self._track_jump(possible_next)}")
+                return possible_next
+            
+            # 2. 스택의 다른 위치에서 주소 찾기
+            alt_addr = self._find_alternative_return_address(rsp)
+            if alt_addr:
+                self.output.write(f"        🔄 [VM 대안] 대체 실행 주소: 0x{alt_addr:x} {self._track_jump(alt_addr)}")
+                return alt_addr
+            
+            # 3. 그래도 없으면 분석 종료
+            self.output.write(f"        🛑 [VM 종료] 더 이상 실행할 주소를 찾을 수 없음")
+            self.output.write(f"        📊 이 지점에서 VM 분석을 정상 종료합니다")
+            return None
+        else:
+            # 유효한 반환 주소가 있는 경우
+            if is_estimated:
+                self.output.write(f"        ⚠️  [RET 경고] 추정된 반환 주소: 0x{ret_addr:x} {self._track_jump(ret_addr)}")
+            
+            # 주소 유효성 검사
+            if not self.disasm_engine.is_address_valid(ret_addr):
+                self.output.write(f"        ❌ [RET 오류] 잘못된 주소 범위: 0x{ret_addr:x}")
+                return None
+            
+            self.output.write(f"        ✅ [RET 성공] 반환 주소로 점프: 0x{ret_addr:x} {self._track_jump(ret_addr)}")
+            return ret_addr
+
+    def _find_vm_next_address(self) -> int:
+        """VM 상태에서 다음 실행 주소를 추정합니다"""
+        # VM의 일반적인 패턴들 확인
+        # 1. 레지스터에 저장된 코드 포인터 확인
+        code_regs = ['r14', 'r15', 'rbx', 'rsi', 'rdi']  # VM에서 자주 사용되는 레지스터들
+        
+        for reg in code_regs:
+            addr = self.vm_state.get_register(reg)
+            if addr and self.disasm_engine.is_address_valid(addr):
+                self.output.write(f"        🔍 [VM 힌트] {reg}에서 유효한 주소 발견: 0x{addr:x} {self._track_jump(addr)}")
+                return addr
+        
+        return None
+
+    def _find_alternative_return_address(self, current_rsp: int) -> int:
+        """스택의 다른 위치에서 유효한 주소를 찾습니다"""
+        # 스택의 인근 위치들을 확인 (8바이트씩 증가)
+        for offset in [8, 16, 24, 32, 40]:
+            alt_rsp = current_rsp + offset
+            addr, _ = self.vm_state.get_memory(alt_rsp)
+            if addr and addr != 0 and self.disasm_engine.is_address_valid(addr):
+                self.output.write(f"        🔍 [스택 검색] 0x{alt_rsp:x}에서 유효한 주소: 0x{addr:x} {self._track_jump(addr)}")
+                return addr
+        
+        return None
+
+    def _simulate_neg(self, op_str: str):
+        parts = [p.strip() for p in op_str.split(',')]
+        dst = parts[0]
+        
+        dst_val = self._get_operand_value(dst)
+        result = -dst_val & 0xFFFFFFFFFFFFFFFF
+        
+        self._set_operand_value(dst, result)
+        self.output.write(f"        → {dst} = -0x{dst_val:x} = 0x{result:x}")
+        return None
 
     def _simulate_lock_sub(self, op_str: str):
+        """LOCK SUB 명령어 시뮬레이션 - 원자적 감산"""
         parts = [p.strip() for p in op_str.split(',')]
         dst, src = parts[0], parts[1]
         
@@ -837,34 +1155,57 @@ class ExecutionSimulator:
         result = (dst_val - src_val) & 0xFFFFFFFFFFFFFFFF
         
         self._set_operand_value(dst, result)
-        self.output.write(f"        → {dst} = 0x{dst_val:x} - 0x{src_val:x} = 0x{result:x}")
+        self.output.write(f"        → lock {dst} = 0x{dst_val:x} - 0x{src_val:x} = 0x{result:x}")
         return None
 
     def _get_operand_value(self, operand: str) -> int:
         operand = operand.strip()
-        
-        if operand.startswith('0x'):
+        if operand in self.vm_state.registers:
+            return self.vm_state.get_register(operand)
+        elif self._is_32bit_register(operand):
+            # 32비트 레지스터의 경우 하위 32비트만 반환
+            reg_64 = self._map_32bit_to_64bit(operand)
+            return self.vm_state.get_register(reg_64) & 0xFFFFFFFF
+        elif self._is_16bit_register(operand):
+            # 16비트 레지스터의 경우 하위 16비트만 반환
+            reg_64 = self._map_16bit_to_64bit(operand)
+            return self.vm_state.get_register(reg_64) & 0xFFFF
+        elif self._is_8bit_register(operand):
+            # 8비트 레지스터 값 읽기
+            reg_64 = self._map_8bit_to_64bit(operand)
+            reg_value = self.vm_state.get_register(reg_64)
+            if operand in ['ah', 'bh', 'ch', 'dh']:
+                # 상위 8비트 레지스터 (비트 8-15)
+                return (reg_value >> 8) & 0xFF
+            else:
+                # 하위 8비트 레지스터 (비트 0-7)
+                return reg_value & 0xFF
+        elif operand.startswith('0x'):
             return int(operand, 16)
         elif operand.isdigit():
             return int(operand)
-        elif operand in self.vm_state.registers:
-            return self.vm_state.get_register(operand)
-        elif self._is_32bit_register(operand):
-            # 32비트 레지스터를 64비트로 변환
-            reg_64 = self._map_32bit_to_64bit(operand)
-            return self.vm_state.get_register(reg_64) & 0xFFFFFFFF
         elif 'ptr [' in operand:
-            # 메모리 참조 파싱 (예: "qword ptr [rax]", "dword ptr [rbp + 0xf8]")
+            # 메모리 참조 파싱
             address = self._parse_memory_reference(operand)
             if address is not None:
                 value, is_estimated = self.vm_state.get_memory(address)
                 if is_estimated:
                     self.output.write(f"        🔮 [추정값] 0x{address:x} = 0x{value:x} ← 실제값 확인 필요!")
-                    #self.output.write(f"           💡 하드코딩 예시: memory_values[0x{address:x}] = 0x실제값")
                 else:
                     self.output.write(f"        [메모리] 0x{address:x} = 0x{value:x} (설정값)")
-                return value
-            return 0
+                
+                # 메모리 크기에 따른 값 반환
+                if 'qword ptr' in operand:
+                    return value & 0xFFFFFFFFFFFFFFFF
+                elif 'dword ptr' in operand:
+                    return value & 0xFFFFFFFF
+                elif 'word ptr' in operand:
+                    return value & 0xFFFF
+                elif 'byte ptr' in operand:
+                    return value & 0xFF
+                else:
+                    # 기본적으로 qword로 처리
+                    return value
         else:
             return 0
 
@@ -876,6 +1217,23 @@ class ExecutionSimulator:
             # 32비트 레지스터의 경우 상위 32비트는 0으로 클리어
             reg_64 = self._map_32bit_to_64bit(operand)
             self.vm_state.set_register(reg_64, value & 0xFFFFFFFF)
+        elif self._is_16bit_register(operand):
+            # 16비트 레지스터의 경우 하위 16비트만 변경, 상위 48비트는 보존
+            reg_64 = self._map_16bit_to_64bit(operand)
+            current_value = self.vm_state.get_register(reg_64)
+            new_value = (current_value & 0xFFFFFFFFFFFF0000) | (value & 0xFFFF)
+            self.vm_state.set_register(reg_64, new_value)
+        elif self._is_8bit_register(operand):
+            # 8비트 레지스터의 경우 하위 8비트만 변경, 상위 56비트는 보존
+            reg_64 = self._map_8bit_to_64bit(operand)
+            current_value = self.vm_state.get_register(reg_64)
+            if operand in ['ah', 'bh', 'ch', 'dh']:
+                # 상위 8비트 레지스터 (비트 8-15) 변경
+                new_value = (current_value & 0xFFFFFFFFFFFF00FF) | ((value & 0xFF) << 8)
+            else:
+                # 하위 8비트 레지스터 (비트 0-7) 변경
+                new_value = (current_value & 0xFFFFFFFFFFFFFF00) | (value & 0xFF)
+            self.vm_state.set_register(reg_64, new_value)
         elif 'ptr [' in operand:
             # 메모리 참조 파싱
             address = self._parse_memory_reference(operand)
@@ -888,6 +1246,17 @@ class ExecutionSimulator:
         return operand in ['eax', 'ebx', 'ecx', 'edx', 'esi', 'edi', 'esp', 'ebp',
                           'r8d', 'r9d', 'r10d', 'r11d', 'r12d', 'r13d', 'r14d', 'r15d']
 
+    def _is_16bit_register(self, operand: str) -> bool:
+        """16비트 레지스터인지 확인"""
+        return operand in ['ax', 'bx', 'cx', 'dx', 'si', 'di', 'sp', 'bp',
+                          'r8w', 'r9w', 'r10w', 'r11w', 'r12w', 'r13w', 'r14w', 'r15w']
+
+    def _is_8bit_register(self, operand: str) -> bool:
+        """8비트 레지스터인지 확인"""
+        return operand in ['al', 'bl', 'cl', 'dl', 'sil', 'dil', 'spl', 'bpl',
+                          'r8b', 'r9b', 'r10b', 'r11b', 'r12b', 'r13b', 'r14b', 'r15b',
+                          'ah', 'bh', 'ch', 'dh']  # 상위 8비트 레지스터도 포함
+
     def _map_32bit_to_64bit(self, reg_32: str) -> str:
         """32비트 레지스터를 64비트로 매핑"""
         mapping = {
@@ -898,35 +1267,243 @@ class ExecutionSimulator:
         }
         return mapping.get(reg_32, reg_32)
 
+    def _map_16bit_to_64bit(self, reg_16: str) -> str:
+        """16비트 레지스터를 64비트로 매핑"""
+        mapping = {
+            'ax': 'rax', 'bx': 'rbx', 'cx': 'rcx', 'dx': 'rdx',
+            'si': 'rsi', 'di': 'rdi', 'sp': 'rsp', 'bp': 'rbp',
+            'r8w': 'r8', 'r9w': 'r9', 'r10w': 'r10', 'r11w': 'r11',
+            'r12w': 'r12', 'r13w': 'r13', 'r14w': 'r14', 'r15w': 'r15'
+        }
+        return mapping.get(reg_16, reg_16)
+
+    def _map_8bit_to_64bit(self, reg_8: str) -> str:
+        """8비트 레지스터를 64비트로 매핑"""
+        mapping = {
+            'al': 'rax', 'bl': 'rbx', 'cl': 'rcx', 'dl': 'rdx',
+            'sil': 'rsi', 'dil': 'rdi', 'spl': 'rsp', 'bpl': 'rbp',
+            'r8b': 'r8', 'r9b': 'r9', 'r10b': 'r10', 'r11b': 'r11',
+            'r12b': 'r12', 'r13b': 'r13', 'r14b': 'r14', 'r15b': 'r15',
+            # 상위 8비트 레지스터들
+            'ah': 'rax', 'bh': 'rbx', 'ch': 'rcx', 'dh': 'rdx'
+        }
+        return mapping.get(reg_8, reg_8)
+
     def _parse_memory_reference(self, operand: str) -> int:
         """메모리 참조를 파싱하여 주소를 계산합니다."""
         try:
             # "qword ptr [rax]" → "rax"
             # "dword ptr [rbp + 0xf8]" → "rbp + 0xf8"
+            # "word ptr [rsp + rax*2 + 0x20]" → "rsp + rax*2 + 0x20"
             start = operand.find('[') + 1
             end = operand.find(']')
             expr = operand[start:end].strip()
             
-            if '+' in expr:
-                parts = expr.split('+')
-                reg_name = parts[0].strip()
-                offset_str = parts[1].strip()
-                
-                base_addr = self.vm_state.get_register(reg_name)
-                if offset_str.startswith('0x'):
-                    offset = int(offset_str, 16)
-                else:
-                    offset = int(offset_str)
+            # 복잡한 SIB 형태 파싱: [base + index*scale + displacement]
+            # 예: rsp + rax*2 + 0x20
+            
+            base_addr = 0
+            index_addr = 0
+            scale = 1
+            displacement = 0
+            
+            # '+' 기준으로 분할하여 각 부분 파싱
+            parts = [part.strip() for part in expr.replace('-', '+-').split('+')]
+            
+            for part in parts:
+                part = part.strip()
+                if not part:
+                    continue
                     
-                return base_addr + offset
-            else:
-                # 단순 레지스터 참조
-                reg_name = expr.strip()
-                return self.vm_state.get_register(reg_name)
-                
-        except (ValueError, IndexError):
-            self.output.write(f"        [!] 메모리 참조 파싱 실패: {operand}")
+                if '*' in part:
+                    # index*scale 형태 파싱
+                    index_part, scale_part = part.split('*')
+                    index_reg = index_part.strip()
+                    scale = int(scale_part.strip())
+                    index_addr = self.vm_state.get_register(index_reg) * scale
+                    self.output.write(f"        [SIB] index: {index_reg}*{scale} = 0x{index_addr:x}")
+                    
+                elif part.startswith('0x') or (part.startswith('-0x')):
+                    # displacement 파싱
+                    displacement = int(part, 16)
+                    self.output.write(f"        [SIB] displacement: {part} = 0x{displacement:x}")
+                    
+                elif part.isdigit() or (part.startswith('-') and part[1:].isdigit()):
+                    # 10진수 displacement
+                    displacement = int(part)
+                    self.output.write(f"        [SIB] displacement: {part} = 0x{displacement:x}")
+                    
+                elif self._is_displacement(part):
+                    # 개선된 displacement 파싱 (공백 처리 포함)
+                    displacement = self._parse_displacement(part)
+                    self.output.write(f"        [SIB] displacement: {part} = 0x{displacement:x}")
+                    
+                elif part in self.vm_state.registers:
+                    # base register
+                    base_addr = self.vm_state.get_register(part)
+                    self.output.write(f"        [SIB] base: {part} = 0x{base_addr:x}")
+                    
+                else:
+                    self.output.write(f"        [SIB 경고] 알 수 없는 부분: '{part}'")
+            
+            final_addr = base_addr + index_addr + displacement
+            self.output.write(f"        [SIB] 최종 주소: 0x{base_addr:x} + 0x{index_addr:x} + 0x{displacement:x} = 0x{final_addr:x}")
+            return final_addr
+            
+        except (ValueError, IndexError, KeyError) as e:
+            self.output.write(f"        [!] 메모리 참조 파싱 실패: {operand} (오류: {e})")
             return None
+
+    def _is_displacement(self, part: str) -> bool:
+        """displacement인지 확인합니다 (공백 처리 포함)"""
+        # 공백 제거 후 확인
+        clean_part = part.replace(' ', '')
+        
+        # 16진수 형태: -0x1c, 0x20 등
+        if clean_part.startswith('0x') or clean_part.startswith('-0x'):
+            return True
+            
+        # 10진수 형태: -28, 32 등
+        if clean_part.isdigit() or (clean_part.startswith('-') and clean_part[1:].isdigit()):
+            return True
+            
+        return False
+
+    def _parse_displacement(self, part: str) -> int:
+        """displacement 값을 파싱합니다"""
+        # 공백 제거
+        clean_part = part.replace(' ', '')
+        
+        # 16진수 파싱
+        if '0x' in clean_part:
+            return int(clean_part, 16)
+        # 10진수 파싱
+        else:
+            return int(clean_part)
+
+    def _estimate_vm_purpose(self, changed_regs):
+        """VM의 목적을 추정합니다."""
+        if not changed_regs:
+            self.output.write("  레지스터 변화가 없어 목적 추정 어려움")
+            return
+        
+        # 변화된 레지스터 분석
+        has_arithmetic = any(reg in ['rax', 'rdx', 'rcx'] for reg, _, _ in changed_regs)
+        has_data_movement = any(reg in ['rsi', 'rdi'] for reg, _, _ in changed_regs)
+        has_complex_calc = len(changed_regs) > 5
+        
+        purposes = []
+        if has_arithmetic:
+            purposes.append("산술 연산/계산")
+        if has_data_movement:
+            purposes.append("데이터 이동/복사")
+        if has_complex_calc:
+            purposes.append("복잡한 알고리즘 실행")
+        
+        if purposes:
+            self.output.write(f"  추정 목적: {', '.join(purposes)}")
+        else:
+            self.output.write("  목적 불명 - 추가 분석 필요")
+        
+        # 메모리 패턴 분석
+        memory_pattern = self._analyze_memory_pattern()
+        if memory_pattern:
+            self.output.write(f"  메모리 패턴: {memory_pattern}")
+
+    def _analyze_memory_pattern(self):
+        """메모리 접근 패턴을 분석합니다"""
+        if not self.memory_changes:
+            return "메모리 접근 없음"
+        
+        addresses = list(self.memory_changes.keys())
+        addresses.sort()
+        
+        # 연속적인 메모리 접근 확인
+        gaps = []
+        for i in range(1, len(addresses)):
+            gap = addresses[i] - addresses[i-1]
+            gaps.append(gap)
+        
+        if not gaps:
+            return "단일 메모리 접근"
+        elif all(gap <= 8 for gap in gaps):
+            return "연속적 메모리 접근 (스택/배열)"
+        elif any(gap > 0x1000 for gap in gaps):
+            return "분산적 메모리 접근 (포인터 추적)"
+        else:
+            return "불규칙적 메모리 접근"
+
+    def _simulate_jb(self, op_str: str):
+        """JB (Jump if Below) - CF가 설정되어 있으면 점프"""
+        if self.vm_state.flags['CF']:
+            if op_str.startswith('0x'):
+                target = int(op_str, 16)
+                self.output.write(f"        → 조건 점프 실행 (CF=1): 0x{target:x} {self._track_jump(target)}")
+                return target
+            else:
+                self.output.write(f"        → 조건 점프 건너뜀 (CF=0)")
+                return None
+        else:
+            self.output.write(f"        → 조건 점프 건너뜀 (CF=0)")
+            return None
+
+    def _simulate_call(self, op_str: str):
+        """CALL 명령어 시뮬레이션 - 반환 주소를 스택에 push하고 대상 주소로 점프"""
+        current_rsp = self.vm_state.get_register('rsp')
+        
+        # 반환 주소는 현재 명령어의 다음 주소여야 하지만, 
+        # 여기서는 0으로 설정 (실제로는 시뮬레이션 루프에서 설정해야 함)
+        return_address = 0x0  # 임시값
+        
+        # 반환 주소를 스택에 push (RSP를 8바이트 감소시키고 값 저장)
+        new_rsp = current_rsp - 8
+        self.vm_state.set_register('rsp', new_rsp)
+        self.vm_state.set_memory(new_rsp, return_address)
+        
+        # 호출 대상 주소 계산 및 점프
+        if op_str.startswith('0x'):
+            target = int(op_str, 16)
+            visit_info = self._track_jump(target)
+            self.output.write(f"        → call 0x{target:x} {visit_info}")
+            self.output.write(f"        📞 [CALL] 반환주소 0x{return_address:x}를 스택에 push")
+            self.output.write(f"        📞 [CALL] RSP: 0x{current_rsp:x} → 0x{new_rsp:x}")
+            return target
+        elif op_str in self.vm_state.registers:
+            target = self.vm_state.get_register(op_str)
+            visit_info = self._track_jump(target)
+            self.output.write(f"        → call {op_str} (0x{target:x}) {visit_info}")
+            self.output.write(f"        📞 [CALL] 반환주소 0x{return_address:x}를 스택에 push")
+            self.output.write(f"        📞 [CALL] RSP: 0x{current_rsp:x} → 0x{new_rsp:x}")
+            return target
+        else:
+            # 메모리 참조나 복잡한 표현식
+            try:
+                target = self._parse_memory_reference(op_str)
+                if target is not None:
+                    visit_info = self._track_jump(target)
+                    self.output.write(f"        → call {op_str} (0x{target:x}) {visit_info}")
+                    self.output.write(f"        📞 [CALL] 반환주소 0x{return_address:x}를 스택에 push")
+                    self.output.write(f"        📞 [CALL] RSP: 0x{current_rsp:x} → 0x{new_rsp:x}")
+                    return target
+                else:
+                    self.output.write(f"        → call {op_str} (주소 계산 실패)")
+                    return None
+            except:
+                self.output.write(f"        → call {op_str} (복잡한 주소 - VM 내부 호출)")
+                return None
+
+    def _simulate_push(self, op_str: str):
+        """PUSH 명령어 시뮬레이션 - 스택에 값 푸시"""
+        src_val = self._get_operand_value(op_str.strip())
+        
+        # RSP 감소 후 메모리에 값 저장
+        rsp = self.vm_state.get_register('rsp')
+        rsp -= 8
+        self.vm_state.set_register('rsp', rsp)
+        self.vm_state.set_memory(rsp, src_val)
+        
+        self.output.write(f"        → push {op_str} (0x{src_val:x}) to [0x{rsp:x}]")
+        return None
 
 
 # ============================================================================
@@ -1008,9 +1585,11 @@ def get_simulation_settings():
 if __name__ == "__main__":
     # 설정
     binary_file_path = "L2.bin"
-    BASE_ADDRESS = 0x7ff675881000
-    ENTRY_ADDRESS = 0x7ff67599dcc9
-    
+    BASE_ADDRESS = 0x7ff7bbf21000
+    ENTRY_ADDRESS = 0x7ff7bc05a10f
+    #0x7ff7bbf21000
+    #0x7ff7bc43a788
+
     # *** 초기 스택 레지스터 값 설정 (디버거에서 확인한 실제 값 사용) ***
     # rbp와 rsp는 독립적으로 설정 가능합니다 (서로 다른 값 가능)
     # None으로 두면 기본값(0x7fff12340000) 사용
