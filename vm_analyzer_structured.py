@@ -87,17 +87,22 @@ class OutputWriter:
 class VMState:
     """VM의 레지스터와 메모리 상태를 관리합니다."""
     
-    def __init__(self, output_writer: OutputWriter = None, initial_rbp: int = None, initial_rsp: int = None):
+    def __init__(self, output_writer: OutputWriter = None, initial_rbp: int = None, initial_rsp: int = None, 
+                 code_bytes: bytes = None, base_address: int = None):
         # 기본값은 일반적인 스택 영역 주소를 사용하되, 설정 가능하게 함
         default_stack_addr = 0x7fff12340000
         
+        # 바이너리 데이터 접근을 위한 속성 추가
+        self.code_bytes = code_bytes
+        self.base_address = base_address
+        
         self.registers = {
-            'rax': 0x7ff7bc011962, 'rbx': 0x7ff1b801a444, 'rcx': 0x7ff7bc011956, 'rdx':0xc4,
-            'rsi': 0x21, 'rdi': 0x12,             
-            'rbp': 0x7ff7bc01186a,
-            'rsp': 0x90ddd9f520,  
-            'r8': 0x7ff7bc011956, 'r9': 0x34b, 'r10': 0x7ff7bc03e48f,
-            'r11': 0xffffffffffffffd9, 'r12': 0x7fffff37, 'r13': 0x7ff7bc011937, 'r14': 0x7ff7bc0118c6, 'r15': 0x7fffff37
+            'rax': 0x7ff66f81bbd9, 'rbx': 0x158, 
+            'rcx': 0x7ff66f610000, 'rdx':0x7ff66f81ba81,
+            'rsi': 0x7ff66f70186a, 'rdi': 0, 'rbp': 0x7ff66f70186a,
+            'rsp': 0x7f5ab1f7c8,  
+            'r8': 0xf, 'r9': 0x122d0, 'r10': 0x1f669e80000,
+            'r11': 0x3dac5bfa40, 'r12': 0, 'r13': 0, 'r14': 0x7ff66f610000, 'r15': 0
 
             # 'rax': 0x7ff7bc12c059, 'rbx': 0x5d8, 'rcx': 0x7ff7bbf20000, 'rdx':0x20ba81,
             # 'rsi': 0x7ff7bc054c32, 'rdi': 0x49,             
@@ -115,32 +120,46 @@ class VMState:
             # 'r11': 0, 'r12': 0, 'r13': 0, 'r14': 0, 'r15': 0
         }
         self.memory = {
-            0x7ff7bc0118e7: (0x7ff7bc12ba81, False),
-            0x7ff7bc0118c6: (0x02bf1cbe91c11b55, False),
-            0x7ff7bc0119aa: (0x90ddd9f6f000, False),
-            0x7ff7bc011937: (0x097030000000008f, False),
-            0x7ff7bc01d45c: (0x497fdc9cbbf58149, False),
-            0x7ff7bc0118cb: (0x7ff7bc02bf1c, False),
-            0x7ff7bc02bf1c: (0x0e97c6570003842f, False),
-            0x7ff7bc02bf24: (0xd01bd3f57a012866, False),
-            0x7ff7bc01199a: (0x0, False),
-            0x7ff7bc01187c: (0x0fdf, False),
-            0x7ff7bc02bf20: (0x7a0128660e97c657, False),
-            0x7ff7bc02bf25: (0x09d01bd3f57a0128, False),
-            0x7ff7bc02bf27: (0x085509d01bd3f57a, False),
-            0x7ff7bc130ec9: (0xe9000003ece9e889, False),
-            0x7ff7bc0216ab: (0xf62949000003b1e9, False),
-            0x7ff7bc12bad9: (0x7ff7bc01f053, False),
-            0x7ff7bc06434f: (0x6801286f3aa14df8, False),
-            0x7ff7bc064353: (0xffd633516801286f, False),
-            0x7ff7bc064358: (0x0f0128ffffffd633, False),
-            0x7ff7bc064354: (0xffffd63351680128, False),
-            0x7ff7bc064356: (0x28ffffffd6335168, False),
-            0x7ff7bc0119c5: (0x3fe9, False),
-            0x7ff7bc154401: (0x0000006e00000000, False),
-            0x7ff7bc06434b: (0x3aa14df80000000e, False),
-            0x7ff7bc12bae9: (0x7ff7bbff43df, False),
-            0x7ff7bc011956: (0xe7db3efd7fcf793f, False),
+            0x7f5ab1f7c8: (0x000000000000000a, False),
+            # 0x7ff6af24bbd9: (0x7ff6af11c69d, False),
+            # 0x7ff6af131956: (0x15883e9700450a00, False),
+            # 0x7ff6af131962: (0x45bb, False),
+            # 0x7ff6af13189d: (0x240000, False),
+            # 0x7ff6af1318cb: (0x7ff6af1feb32, False),
+            # 0x7ff6af1319da: (0x699bbd22bc8bbcab, False),
+            # 0x7ff6af1feb34: (0x0128fff1c3ab0005, False),
+            # 0x7ff6af1feb36: (0x050128fff1c3ab, False),
+            # 0x7ff6af1318e7: (0x7ff6af24ba, False),
+            # 0x7ff6af1feb32: (0xfff1c3ab00050128, False),
+
+            # 0x7ff7bc0118e7: (0x7ff7bc12ba81, False),
+            # 0x7ff7bc0118c6: (0x02bf1cbe91c11b55, False),
+            # 0x7ff7bc0119aa: (0x90ddd9f6f000, False),
+            # 0x7ff7bc011937: (0x097030000000008f, False),
+            # 0x7ff7bc01d45c: (0x497fdc9cbbf58149, False),
+            # 0x7ff7bc0118cb: (0x7ff7bc02bf1c, False),
+            # 0x7ff7bc02bf1c: (0x0e97c6570003842f, False),
+            # 0x7ff7bc02bf24: (0xd01bd3f57a012866, False),
+            # 0x7ff7bc01199a: (0x0, False),
+            # 0x7ff7bc01187c: (0x0fdf, False),
+            # 0x7ff7bc02bf20: (0x7a0128660e97c657, False),
+            # 0x7ff7bc02bf25: (0x09d01bd3f57a0128, False),
+            # 0x7ff7bc02bf27: (0x085509d01bd3f57a, False),
+            # 0x7ff7bc130ec9: (0xe9000003ece9e889, False),
+            # 0x7ff7bc0216ab: (0xf62949000003b1e9, False),
+            # 0x7ff7bc12bad9: (0x7ff7bc01f053, False),
+            # 0x7ff7bc06434f: (0x6801286f3aa14df8, False),
+            # 0x7ff7bc064353: (0xffd633516801286f, False),
+            # 0x7ff7bc064358: (0x0f0128ffffffd633, False),
+            # 0x7ff7bc064354: (0xffffd63351680128, False),
+            # 0x7ff7bc064356: (0x28ffffffd6335168, False),
+            # 0x7ff7bc0119c5: (0x3fe9, False),
+            # 0x7ff7bc154401: (0x0000006e00000000, False),
+            # 0x7ff7bc06434b: (0x3aa14df80000000e, False),
+            # 0x7ff7bc12bae9: (0x7ff7bbff43df, False),
+            # 0x7ff7bc011956: (0xe7db3efd7fcf793f, False),
+
+
             # 0x7ff7bc01189d: (0, False),
             # 0x7ff7bc0119da: (0, False),
             # 0x7ff7bc0118cb: (0x7ff7bc0d8749, False),
@@ -167,7 +186,8 @@ class VMState:
         self.flags = {
             'ZF': False,  # Zero Flag
             'CF': False,  # Carry Flag  
-            'SF': False   # Sign Flag
+            'SF': False,  # Sign Flag
+            'DF': False   # Direction Flag
         }
         self.use_real_values = False
         self.output = output_writer or OutputWriter()
@@ -208,13 +228,57 @@ class VMState:
             value, is_estimated = self.memory[address]
             return value, is_estimated
         else:
-            initial_value = self._estimate_memory_value(address)
-            self.memory[address] = (initial_value, True)  # 추정값으로 저장
-            return initial_value, True
+            # 1단계: 바이너리 파일에서 값 찾기 시도
+            binary_value = self._get_value_from_binary(address)
+            if binary_value is not None:
+                self.memory[address] = (binary_value, False)  # 실제값으로 저장
+                self.output.write(f"        📖 [바이너리에서 읽음] 0x{address:x} = 0x{binary_value:x}")
+                return binary_value, False
+            
+            # 2단계: 바이너리에서도 찾을 수 없으면 추정값 사용
+            estimated_value = self._estimate_memory_value(address)
+            self.memory[address] = (estimated_value, True)  # 추정값으로 저장
+            return estimated_value, True
 
     def set_memory(self, address: int, value: int):
         """메모리 값을 설정합니다. (항상 실제값으로 처리)"""
         self.memory[address] = (value, False)  # 새로 설정된 값은 실제값
+
+    def _get_value_from_binary(self, address: int) -> int:
+        """바이너리 파일에서 주소에 해당하는 값을 읽어옵니다."""
+        if not self.code_bytes or not self.base_address:
+            return None
+        
+        # 주소가 바이너리 범위 내에 있는지 확인
+        if address < self.base_address or address >= self.base_address + len(self.code_bytes):
+            return None
+        
+        try:
+            offset = address - self.base_address
+            # 8바이트 읽기 (Little Endian)
+            if offset + 8 <= len(self.code_bytes):
+                value_bytes = self.code_bytes[offset:offset + 8]
+                value = int.from_bytes(value_bytes, byteorder='little')
+                return value
+            # 8바이트를 읽을 수 없으면 4바이트 시도
+            elif offset + 4 <= len(self.code_bytes):
+                value_bytes = self.code_bytes[offset:offset + 4]
+                value = int.from_bytes(value_bytes, byteorder='little')
+                return value
+            # 4바이트도 안되면 남은 바이트만 읽기
+            else:
+                remaining = len(self.code_bytes) - offset
+                if remaining > 0:
+                    value_bytes = self.code_bytes[offset:offset + remaining]
+                    # 부족한 바이트는 0으로 패딩
+                    value_bytes += b'\x00' * (8 - len(value_bytes))
+                    value = int.from_bytes(value_bytes, byteorder='little')
+                    return value
+                else:
+                    return None
+        except Exception as e:
+            self.output.write(f"        ❌ [바이너리 읽기 오류] 0x{address:x}: {e}")
+            return None
 
     def _estimate_memory_value(self, address: int) -> int:
         """VM 초기 메모리 상태 추정"""
@@ -635,6 +699,20 @@ class ExecutionSimulator:
             return self._simulate_jb(op_str)
         elif mnemonic == 'call':
             return self._simulate_call(op_str)
+        elif mnemonic == 'lea':
+            return self._simulate_lea(op_str)
+        elif mnemonic == 'stc':
+            return self._simulate_stc(op_str)
+        elif mnemonic == 'clc':
+            return self._simulate_clc(op_str)
+        elif mnemonic == 'std':
+            return self._simulate_std(op_str)
+        elif mnemonic == 'cld':
+            return self._simulate_cld(op_str)
+        elif mnemonic == 'out':
+            return self._simulate_out(op_str)
+        elif mnemonic == 'in':
+            return self._simulate_in(op_str)
         else:
             self.output.write(f"        → 지원하지 않는 명령어: {mnemonic}")
             return None
@@ -951,7 +1029,19 @@ class ExecutionSimulator:
             target = self.vm_state.get_register(op_str)
             self.output.write(f"        → 간접 점프: {op_str} (0x{target:x}) {self._track_jump(target)}")
             return target
-        return None
+        elif 'ptr [' in op_str:
+            # 메모리 참조 점프: jmp qword ptr [rax]
+            self.output.write(f"        🔍 [메모리 점프] {op_str} 분석 중...")
+            target_value = self._get_operand_value(op_str)
+            if target_value is not None:
+                self.output.write(f"        → 메모리 점프: {op_str} → 0x{target_value:x} {self._track_jump(target_value)}")
+                return target_value
+            else:
+                self.output.write(f"        ❌ [점프 실패] 메모리 값 읽기 실패: {op_str}")
+                return None
+        else:
+            self.output.write(f"        ❓ [알 수 없는 점프] {op_str}")
+            return None
 
     def _simulate_jb(self, op_str: str):
         """JB (Jump if Below) - CF가 설정되어 있으면 점프"""
@@ -1189,10 +1279,12 @@ class ExecutionSimulator:
             address = self._parse_memory_reference(operand)
             if address is not None:
                 value, is_estimated = self.vm_state.get_memory(address)
+                
+                # 추정값 여부를 명확히 표시
                 if is_estimated:
-                    self.output.write(f"        🔮 [추정값] 0x{address:x} = 0x{value:x} ← 실제값 확인 필요!")
+                    self.output.write(f"        🔮 [추정값] 0x{address:x} = 0x{value:x} ← L2.bin에서도 찾을 수 없음")
                 else:
-                    self.output.write(f"        [메모리] 0x{address:x} = 0x{value:x} (설정값)")
+                    self.output.write(f"        📖 [실제값] 0x{address:x} = 0x{value:x}")
                 
                 # 메모리 크기에 따른 값 반환
                 if 'qword ptr' in operand:
@@ -1505,6 +1597,103 @@ class ExecutionSimulator:
         self.output.write(f"        → push {op_str} (0x{src_val:x}) to [0x{rsp:x}]")
         return None
 
+    def _simulate_lea(self, op_str: str):
+        """LEA (Load Effective Address) 명령어 시뮬레이션 - 주소 계산만 수행, 메모리 접근 없음"""
+        parts = [p.strip() for p in op_str.split(',')]
+        dst, src = parts[0], parts[1]
+        
+        # LEA는 메모리 주소를 계산하지만 실제 메모리에 접근하지는 않음
+        # src는 항상 메모리 참조 형태여야 함 (예: [rbp + 0x10])
+        if 'ptr [' in src or '[' in src:
+            # 메모리 참조에서 주소만 계산 (실제 메모리 값 읽지 않음)
+            effective_address = self._parse_memory_reference(src)
+            if effective_address is not None:
+                self._set_operand_value(dst, effective_address)
+                self.output.write(f"        → lea {dst}, {src} = 0x{effective_address:x} (주소 계산만)")
+            else:
+                self.output.write(f"        → lea {dst}, {src} (주소 계산 실패)")
+        else:
+            self.output.write(f"        → lea {dst}, {src} (잘못된 형태 - 메모리 참조가 아님)")
+        
+        return None
+
+    def _simulate_stc(self, op_str: str):
+        """STC (Set Carry Flag) 명령어 시뮬레이션 - CF를 1로 설정"""
+        self.vm_state.flags['CF'] = True
+        self.output.write(f"        → stc (CF=1 설정)")
+        return None
+
+    def _simulate_clc(self, op_str: str):
+        """CLC (Clear Carry Flag) 명령어 시뮬레이션 - CF를 0으로 클리어"""
+        self.vm_state.flags['CF'] = False
+        self.output.write(f"        → clc (CF=0 설정)")
+        return None
+
+    def _simulate_std(self, op_str: str):
+        """STD (Set Direction Flag) 명령어 시뮬레이션 - DF를 1로 설정"""
+        self.vm_state.flags['DF'] = True
+        self.output.write(f"        → std (DF=1 설정, 문자열 연산 감소 방향)")
+        return None
+
+    def _simulate_cld(self, op_str: str):
+        """CLD (Clear Direction Flag) 명령어 시뮬레이션 - DF를 0으로 클리어"""
+        self.vm_state.flags['DF'] = False
+        self.output.write(f"        → cld (DF=0 설정, 문자열 연산 증가 방향)")
+        return None
+
+    def _simulate_out(self, op_str: str):
+        """OUT 명령어 시뮬레이션 - 포트로 데이터 출력"""
+        parts = [p.strip() for p in op_str.split(',')]
+        
+        if len(parts) == 2:
+            port, data_reg = parts[0], parts[1]
+            
+            # 포트 번호 파싱
+            if port.startswith('0x'):
+                port_num = int(port, 16)
+            elif port.isdigit():
+                port_num = int(port)
+            elif port == 'dx':
+                port_num = self.vm_state.get_register('dx') & 0xFFFF
+            else:
+                port_num = 0
+            
+            # 데이터 값 가져오기
+            data_val = self._get_operand_value(data_reg)
+            
+            self.output.write(f"        → out 포트(0x{port_num:x}), {data_reg}(0x{data_val:x}) [I/O 출력 시뮬레이션]")
+        else:
+            self.output.write(f"        → out {op_str} [I/O 출력 - 형식 미지원]")
+        
+        return None
+
+    def _simulate_in(self, op_str: str):
+        """IN 명령어 시뮬레이션 - 포트에서 데이터 입력"""
+        parts = [p.strip() for p in op_str.split(',')]
+        
+        if len(parts) == 2:
+            data_reg, port = parts[0], parts[1]
+            
+            # 포트 번호 파싱
+            if port.startswith('0x'):
+                port_num = int(port, 16)
+            elif port.isdigit():
+                port_num = int(port)
+            elif port == 'dx':
+                port_num = self.vm_state.get_register('dx') & 0xFFFF
+            else:
+                port_num = 0
+            
+            # 가상의 입력 값 (실제 하드웨어가 없으므로)
+            input_val = 0x0  # 기본값으로 0 반환
+            
+            self._set_operand_value(data_reg, input_val)
+            self.output.write(f"        → in {data_reg}, 포트(0x{port_num:x}) = 0x{input_val:x} [I/O 입력 시뮬레이션]")
+        else:
+            self.output.write(f"        → in {op_str} [I/O 입력 - 형식 미지원]")
+        
+        return None
+
 
 # ============================================================================
 # 메인 VM 분석기
@@ -1516,7 +1705,7 @@ class VMAnalyzer:
                  initial_rbp: int = None, initial_rsp: int = None):
         self.output = output_writer or OutputWriter()
         self.disasm = DisassemblyEngine(code_bytes, base_address, self.output)
-        self.vm_state = VMState(self.output, initial_rbp, initial_rsp)
+        self.vm_state = VMState(self.output, initial_rbp, initial_rsp, code_bytes, base_address)
         self.tail_tracker = TailCallTracker(self.disasm, self.output)
         self.pattern_analyzer = PatternAnalyzer(self.disasm, self.output)
         self.simulator = ExecutionSimulator(self.disasm, self.vm_state, self.output)
@@ -1585,8 +1774,8 @@ def get_simulation_settings():
 if __name__ == "__main__":
     # 설정
     binary_file_path = "L2.bin"
-    BASE_ADDRESS = 0x7ff7bbf21000
-    ENTRY_ADDRESS = 0x7ff7bc05a10f
+    BASE_ADDRESS = 0x7ff66f610400
+    ENTRY_ADDRESS = 0x7ff66f74f031
     #0x7ff7bbf21000
     #0x7ff7bc43a788
 
