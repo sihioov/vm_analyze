@@ -2,6 +2,23 @@ from capstone import Cs, CS_ARCH_X86, CS_MODE_64, x86_const
 import datetime
 
 # ============================================================================
+# VM 분석기 - 향상된 메모리 추적 및 동적 수정 기능
+# ============================================================================
+# 
+# 새로운 기능들:
+# 1. 실시간 메모리 변화 추적: 모든 메모리 쓰기를 추적하고 기록
+# 2. 메모리 접근 모니터링: 특정 주소의 읽기/쓰기 접근 감지
+# 3. 조건부 메모리 수정: 특정 조건에서만 메모리 값 변경
+# 4. 메모리 범위 패치: 연속된 메모리 영역에 값 배치
+# 5. 상세한 메모리 분석 리포트: 수정 패턴, 빈도, 타이밍 분석
+#
+# 사용 예시:
+# - analyzer.vm_state.monitor_memory_access(0x주소)  # 주소 모니터링
+# - analyzer.vm_state.set_memory_conditional(addr, value, condition_func)  # 조건부 수정
+# - analyzer.vm_state.patch_memory_range(start_addr, [값1, 값2, 값3])  # 범위 패치
+# ============================================================================
+
+# ============================================================================
 # 출력 관리 클래스
 # ============================================================================
 class OutputWriter:
@@ -97,12 +114,12 @@ class VMState:
         self.base_address = base_address
         
         self.registers = {
-            'rax': 0x7ff66f81bbd9, 'rbx': 0x158, 
-            'rcx': 0x7ff66f610000, 'rdx':0x7ff66f81ba81,
-            'rsi': 0x7ff66f70186a, 'rdi': 0, 'rbp': 0x7ff66f70186a,
-            'rsp': 0x7f5ab1f7c8,  
-            'r8': 0xf, 'r9': 0x122d0, 'r10': 0x1f669e80000,
-            'r11': 0x3dac5bfa40, 'r12': 0, 'r13': 0, 'r14': 0x7ff66f610000, 'r15': 0
+            'rax': 0x7ff6ec0abbd9, 'rbx': 0x158, 
+            'rcx': 0x7ff6ebea0000, 'rdx':0x7ff6ec0aba81,
+            'rsi': 0x7ff6ebf9186a, 'rdi': 0, 'rbp': 0x7ff6ebf9186a,
+            'rsp': 0x3beb8ff738,  
+            'r8': 0xf, 'r9': 0x122d0, 'r10': 0x15fbf680000,
+            'r11': 0x3beb8ff7b0, 'r12': 0, 'r13': 0, 'r14': 0x7ff6ebea0000, 'r15': 0
 
             # 'rax': 0x7ff7bc12c059, 'rbx': 0x5d8, 'rcx': 0x7ff7bbf20000, 'rdx':0x20ba81,
             # 'rsi': 0x7ff7bc054c32, 'rdi': 0x49,             
@@ -120,7 +137,13 @@ class VMState:
             # 'r11': 0, 'r12': 0, 'r13': 0, 'r14': 0, 'r15': 0
         }
         self.memory = {
-            0x7f5ab1f7c8: (0x000000000000000a, False),
+            # 0xe9faeff840: (0x0204b6cd542, False),
+            # 0xe9faeff858: (0xe9faeff090, False),
+            # 0xe9faeff8a0: (0x7f, False),
+            # 0x7ff7544919c6: (0x0, False),
+            # 0xe9faeff8a8: (0x0, False),
+            #0x7f5ab1f7c8: (0x000000000000000a, False),
+
             # 0x7ff6af24bbd9: (0x7ff6af11c69d, False),
             # 0x7ff6af131956: (0x15883e9700450a00, False),
             # 0x7ff6af131962: (0x45bb, False),
@@ -220,10 +243,23 @@ class VMState:
         return self.registers.get(reg_name, 0)
 
     def set_register(self, reg_name: str, value: int):
+        old_value = self.registers.get(reg_name, 0)
         self.registers[reg_name] = value
+        
+        # 중요한 레지스터 변화 추적 (특히 RBP, RSP)
+        if reg_name in ['rbp', 'rsp'] and old_value != value:
+            self.output.write(f"        📌 [레지스터 변화] {reg_name.upper()}: 0x{old_value:x} → 0x{value:x}")
+            
+            # RBP가 0이 되는 경우 특별 추적
+            if reg_name == 'rbp' and value == 0:
+                self.output.write(f"        ⚠️  [RBP=0 경고] RBP가 0으로 설정됨 - VM 플랫 구조로 전환")
 
     def get_memory(self, address: int) -> tuple[int, bool]:
         """메모리 값을 가져옵니다. (값, 추정값여부) 반환"""
+        # 모니터링된 주소 접근 체크
+        if hasattr(self, 'monitored_addresses') and address in self.monitored_addresses:
+            self.output.write(f"        👁️  [모니터] 0x{address:x} 읽기 접근 감지")
+        
         if address in self.memory:
             value, is_estimated = self.memory[address]
             return value, is_estimated
@@ -242,7 +278,43 @@ class VMState:
 
     def set_memory(self, address: int, value: int):
         """메모리 값을 설정합니다. (항상 실제값으로 처리)"""
+        # 기존 값 확인 (변화 추적용)
+        old_value = None
+        if address in self.memory:
+            old_value, _ = self.memory[address]
+        
+        # 새 값 설정
         self.memory[address] = (value, False)  # 새로 설정된 값은 실제값
+        
+        # 메모리 변화 로깅
+        if old_value is not None and old_value != value:
+            self.output.write(f"        🔄 [메모리 수정] 0x{address:x}: 0x{old_value:x} → 0x{value:x}")
+        elif old_value is None:
+            self.output.write(f"        ✨ [메모리 생성] 0x{address:x} ← 0x{value:x}")
+        
+        return old_value  # 이전 값 반환
+
+    def set_memory_conditional(self, address: int, value: int, condition_func=None):
+        """조건부 메모리 값 설정"""
+        if condition_func is None or condition_func(address, self):
+            old_value = self.set_memory(address, value)
+            self.output.write(f"        🎯 [조건부 설정] 0x{address:x} = 0x{value:x}")
+            return old_value
+        return None
+
+    def patch_memory_range(self, start_addr: int, values: list):
+        """메모리 범위에 값들을 연속으로 설정"""
+        self.output.write(f"        🔧 [메모리 패치] 0x{start_addr:x} ~ 0x{start_addr + len(values)*8:x}")
+        for i, value in enumerate(values):
+            addr = start_addr + (i * 8)
+            self.set_memory(addr, value)
+
+    def monitor_memory_access(self, address: int):
+        """특정 메모리 주소 접근 모니터링"""
+        if not hasattr(self, 'monitored_addresses'):
+            self.monitored_addresses = set()
+        self.monitored_addresses.add(address)
+        self.output.write(f"        👁️  [모니터 등록] 0x{address:x} 접근 추적 시작")
 
     def _get_value_from_binary(self, address: int) -> int:
         """바이너리 파일에서 주소에 해당하는 값을 읽어옵니다."""
@@ -391,7 +463,9 @@ class TailCallTracker:
 
             instruction_count = 0
             for insn in instructions:
-                self.output.write(f"0x{insn.address:x}:\t{insn.mnemonic}\t{insn.op_str}")
+                # 바이너리 파일 오프셋 계산
+                file_offset = insn.address - self.disasm.base_address
+                self.output.write(f"0x{insn.address:x}:\t{insn.mnemonic}\t{insn.op_str} ({file_offset:08x})")
                 instruction_count += 1
 
                 if insn.mnemonic == "jmp":
@@ -504,9 +578,11 @@ class ExecutionSimulator:
         self.vm_state = vm_state
         self.output = output_writer or OutputWriter()
         self.jump_counts = {}  # 점프 대상 주소별 방문 횟수 추적
-        self.memory_changes = {}  # 메모리 변화 추적
+        self.memory_changes = {}  # 메모리 변화 추적: {address: [(old_value, new_value, instruction_num), ...]}
+        self.memory_writes = {}  # 메모리 쓰기 패턴 추적: {address: [instruction_nums]}
         self.initial_registers = {}  # 초기 레지스터 값
         self.final_registers = {}  # 최종 레지스터 값
+        self.instruction_count = 0  # 현재 명령어 번호
 
     def simulate(self, entry_address: int, max_instructions: int = 200):
         """명령어 실행을 시뮬레이션합니다."""
@@ -524,6 +600,7 @@ class ExecutionSimulator:
         try:
             while instruction_count < max_instructions and current_address is not None:
                 instruction_count += 1
+                self.instruction_count = instruction_count  # 클래스 변수 업데이트
                 
                 # 디스어셈블리
                 instructions = self.disasm_engine.disassemble_at(current_address, 16)
@@ -533,8 +610,11 @@ class ExecutionSimulator:
                 
                 insn = instructions[0]
                 
+                # 바이너리 파일 오프셋 계산
+                file_offset = insn.address - self.disasm_engine.base_address
+                
                 # 명령어 실행
-                self.output.write(f"{instruction_count:3d}. 0x{insn.address:x}: {insn.mnemonic} {insn.op_str}")
+                self.output.write(f"{instruction_count:3d}. 0x{insn.address:x}: {insn.mnemonic} {insn.op_str} ({file_offset:08x})")
                 
                 try:
                     # 명령어 시뮬레이션 실행
@@ -558,6 +638,10 @@ class ExecutionSimulator:
                             visit_info = f" (#{self.jump_counts[next_address]}번째 방문)"
                         self.output.write(f"        🔄 점프: 0x{current_address:x} → 0x{next_address:x}{visit_info}")
                         current_address = next_address
+                    elif next_address is None and insn.mnemonic == 'ret':
+                        # RET에서 None 반환 = VM 종료 신호
+                        self.output.write(f"        🏁 [VM 종료] ret 명령어에서 종료 신호 받음")
+                        break
                     else:
                         # 다음 명령어로 이동
                         current_address += insn.size
@@ -600,17 +684,45 @@ class ExecutionSimulator:
         
         # 2. 메모리 변화 분석
         self.output.write("\n💾 **메모리 변화 분석:**")
-        if self.vm_state.memory:
-            for addr, (value, is_estimated) in self.vm_state.memory.items():
-                status = "추정값" if is_estimated else "설정값"
-                self.output.write(f"  [0x{addr:x}] = 0x{value:x} ({status})")
+        if self.memory_changes:
+            self.output.write(f"  총 {len(self.memory_changes)}개 주소에서 메모리 수정 발생:")
+            for addr, changes in self.memory_changes.items():
+                self.output.write(f"  📍 [0x{addr:x}]: {len(changes)}회 수정")
+                for i, (old_val, new_val, insn_num) in enumerate(changes[-3:]):  # 최근 3개만 표시
+                    self.output.write(f"    #{insn_num}: 0x{old_val:x} → 0x{new_val:x}")
+                if len(changes) > 3:
+                    self.output.write(f"    ... 및 {len(changes) - 3}회 더")
         else:
-            self.output.write("  메모리 변화 없음")
+            self.output.write("  메모리 쓰기 없음")
+            
+        # 현재 메모리 상태 요약
+        if self.vm_state.memory:
+            self.output.write(f"\n📋 **현재 메모리 상태:**")
+            sorted_memory = sorted(self.vm_state.memory.items())
+            for addr, (value, is_estimated) in sorted_memory[:10]:  # 상위 10개만 표시
+                status = "추정값" if is_estimated else "실제값"
+                self.output.write(f"  [0x{addr:x}] = 0x{value:x} ({status})")
+            if len(sorted_memory) > 10:
+                self.output.write(f"  ... 및 {len(sorted_memory) - 10}개 주소 더")
         
         # 3. 실행 패턴 분석
         self.output.write(f"\n📈 **실행 통계:**")
         self.output.write(f"  총 실행 명령어: {instruction_count}개")
-        self.output.write(f"  메모리 접근: {len(self.memory_changes)}개 주소")
+        self.output.write(f"  메모리 쓰기: {len(self.memory_changes)}개 주소")
+        self.output.write(f"  메모리 읽기: {len(self.vm_state.memory)}개 주소")
+        
+        # 메모리 쓰기 패턴 분석
+        if self.memory_writes:
+            write_frequency = sum(len(writes) for writes in self.memory_writes.values())
+            self.output.write(f"  총 메모리 쓰기 횟수: {write_frequency}회")
+            
+            # 가장 자주 수정된 주소들
+            frequent_writes = sorted(self.memory_writes.items(), 
+                                   key=lambda x: len(x[1]), reverse=True)
+            if frequent_writes:
+                self.output.write(f"  가장 자주 수정된 주소:")
+                for addr, writes in frequent_writes[:5]:  # 상위 5개
+                    self.output.write(f"    0x{addr:x}: {len(writes)}회 (명령어 #{writes[0]} ~ #{writes[-1]})")
 
         # 점프 횟수 통계 추가
         if self.jump_counts:
@@ -713,6 +825,8 @@ class ExecutionSimulator:
             return self._simulate_out(op_str)
         elif mnemonic == 'in':
             return self._simulate_in(op_str)
+        elif mnemonic == 'syscall':
+            return self._simulate_syscall(op_str)
         else:
             self.output.write(f"        → 지원하지 않는 명령어: {mnemonic}")
             return None
@@ -840,8 +954,24 @@ class ExecutionSimulator:
         src_val = self._get_operand_value(src)
         result = (dst_val ^ src_val) & 0xFFFFFFFFFFFFFFFF
         
+        # 플래그 설정 (XOR은 CF와 OF를 0으로 클리어)
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        self.vm_state.flags['CF'] = False
+        self.vm_state.flags['OF'] = False
+        # 패리티 플래그 계산 (하위 8비트의 1의 개수가 짝수면 PF=1)
+        self.vm_state.flags['PF'] = (bin(result & 0xFF).count('1') % 2) == 0
+        
         self._set_operand_value(dst, result)
-        self.output.write(f"        → {dst} = 0x{dst_val:x} ^ 0x{src_val:x} = 0x{result:x}")
+        
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['PF']: flag_str.append('PF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        self.output.write(f"        → {dst} = 0x{dst_val:x} ^ 0x{src_val:x} = 0x{result:x}{flag_info}")
         return None
 
     def _simulate_and(self, op_str: str):
@@ -852,8 +982,24 @@ class ExecutionSimulator:
         src_val = self._get_operand_value(src)
         result = (dst_val & src_val) & 0xFFFFFFFFFFFFFFFF
         
+        # 플래그 설정 (AND는 CF와 OF를 0으로 클리어)
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        self.vm_state.flags['CF'] = False
+        self.vm_state.flags['OF'] = False
+        # 패리티 플래그 계산
+        self.vm_state.flags['PF'] = (bin(result & 0xFF).count('1') % 2) == 0
+        
         self._set_operand_value(dst, result)
-        self.output.write(f"        → {dst} = 0x{dst_val:x} & 0x{src_val:x} = 0x{result:x}")
+        
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['PF']: flag_str.append('PF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        self.output.write(f"        → {dst} = 0x{dst_val:x} & 0x{src_val:x} = 0x{result:x}{flag_info}")
         return None
 
     def _simulate_or(self, op_str: str):
@@ -864,8 +1010,24 @@ class ExecutionSimulator:
         src_val = self._get_operand_value(src)
         result = (dst_val | src_val) & 0xFFFFFFFFFFFFFFFF
         
+        # 플래그 설정 (OR은 CF와 OF를 0으로 클리어)
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        self.vm_state.flags['CF'] = False
+        self.vm_state.flags['OF'] = False
+        # 패리티 플래그 계산
+        self.vm_state.flags['PF'] = (bin(result & 0xFF).count('1') % 2) == 0
+        
         self._set_operand_value(dst, result)
-        self.output.write(f"        → {dst} = 0x{dst_val:x} | 0x{src_val:x} = 0x{result:x}")
+        
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['PF']: flag_str.append('PF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        self.output.write(f"        → {dst} = 0x{dst_val:x} | 0x{src_val:x} = 0x{result:x}{flag_info}")
         return None
 
     def _simulate_shl(self, op_str: str):
@@ -876,8 +1038,26 @@ class ExecutionSimulator:
         src_val = self._get_operand_value(src)
         result = (dst_val << src_val) & 0xFFFFFFFFFFFFFFFF
         
+        # 플래그 설정
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        # CF: 마지막에 시프트 아웃된 비트
+        if src_val > 0 and src_val <= 64:
+            self.vm_state.flags['CF'] = bool(dst_val & (1 << (64 - src_val)))
+        # 패리티 플래그 계산
+        self.vm_state.flags['PF'] = (bin(result & 0xFF).count('1') % 2) == 0
+        
         self._set_operand_value(dst, result)
-        self.output.write(f"        → {dst} = 0x{dst_val:x} << 0x{src_val:x} = 0x{result:x}")
+        
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['CF']: flag_str.append('CF')
+        if self.vm_state.flags['PF']: flag_str.append('PF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        self.output.write(f"        → {dst} = 0x{dst_val:x} << 0x{src_val:x} = 0x{result:x}{flag_info}")
         return None
 
     def _simulate_shr(self, op_str: str):
@@ -888,8 +1068,26 @@ class ExecutionSimulator:
         src_val = self._get_operand_value(src)
         result = (dst_val >> src_val) & 0xFFFFFFFFFFFFFFFF
         
+        # 플래그 설정
+        self.vm_state.flags['ZF'] = (result == 0)
+        self.vm_state.flags['SF'] = (result & 0x8000000000000000) != 0
+        # CF: 마지막에 시프트 아웃된 비트
+        if src_val > 0:
+            self.vm_state.flags['CF'] = bool(dst_val & (1 << (src_val - 1)))
+        # 패리티 플래그 계산
+        self.vm_state.flags['PF'] = (bin(result & 0xFF).count('1') % 2) == 0
+        
         self._set_operand_value(dst, result)
-        self.output.write(f"        → {dst} = 0x{dst_val:x} >> 0x{src_val:x} = 0x{result:x}")
+        
+        # 플래그 상태 표시
+        flag_str = []
+        if self.vm_state.flags['ZF']: flag_str.append('ZF')
+        if self.vm_state.flags['SF']: flag_str.append('SF')
+        if self.vm_state.flags['CF']: flag_str.append('CF')
+        if self.vm_state.flags['PF']: flag_str.append('PF')
+        
+        flag_info = f" ({', '.join(flag_str)})" if flag_str else ""
+        self.output.write(f"        → {dst} = 0x{dst_val:x} >> 0x{src_val:x} = 0x{result:x}{flag_info}")
         return None
 
     def _simulate_cmp(self, op_str: str):
@@ -1072,11 +1270,31 @@ class ExecutionSimulator:
 
     def _simulate_pushfq(self, op_str: str):
         """PUSHFQ 명령어 시뮬레이션 - 플래그 레지스터 푸시"""
-        # 플래그 값 계산 (간단한 예시)
-        flags_val = 0
-        if self.vm_state.flags.get('ZF', False): flags_val |= 0x40
-        if self.vm_state.flags.get('SF', False): flags_val |= 0x80
-        if self.vm_state.flags.get('CF', False): flags_val |= 0x1
+        # 더 완전한 RFLAGS 값 계산
+        flags_val = 0x202  # 기본값: IF=1 (Interrupt Flag) + 예약 비트
+        
+        # 주요 플래그들 설정
+        if self.vm_state.flags.get('CF', False): flags_val |= 0x1     # Carry Flag
+        if self.vm_state.flags.get('PF', False): flags_val |= 0x4     # Parity Flag  
+        if self.vm_state.flags.get('AF', False): flags_val |= 0x10    # Auxiliary Flag
+        if self.vm_state.flags.get('ZF', False): flags_val |= 0x40    # Zero Flag
+        if self.vm_state.flags.get('SF', False): flags_val |= 0x80    # Sign Flag
+        if self.vm_state.flags.get('TF', False): flags_val |= 0x100   # Trap Flag
+        if self.vm_state.flags.get('IF', True):  flags_val |= 0x200   # Interrupt Flag (기본 true)
+        if self.vm_state.flags.get('DF', False): flags_val |= 0x400   # Direction Flag
+        if self.vm_state.flags.get('OF', False): flags_val |= 0x800   # Overflow Flag
+        
+        # 디버깅을 위한 플래그 상태 출력
+        active_flags = []
+        if flags_val & 0x1:   active_flags.append('CF')
+        if flags_val & 0x4:   active_flags.append('PF') 
+        if flags_val & 0x10:  active_flags.append('AF')
+        if flags_val & 0x40:  active_flags.append('ZF')
+        if flags_val & 0x80:  active_flags.append('SF')
+        if flags_val & 0x100: active_flags.append('TF')
+        if flags_val & 0x200: active_flags.append('IF')
+        if flags_val & 0x400: active_flags.append('DF')
+        if flags_val & 0x800: active_flags.append('OF')
         
         # RSP 감소 후 플래그 저장
         rsp = self.vm_state.get_register('rsp')
@@ -1085,6 +1303,8 @@ class ExecutionSimulator:
         self.vm_state.set_memory(rsp, flags_val)
         
         self.output.write(f"        → pushfq (0x{flags_val:x}) to [0x{rsp:x}]")
+        if active_flags:
+            self.output.write(f"        🏁 [플래그 상태] {', '.join(active_flags)}")
         return None
 
     def _simulate_pop(self, op_str: str):
@@ -1145,7 +1365,7 @@ class ExecutionSimulator:
         return None
 
     def _simulate_ret(self, op_str: str):
-        """RET 명령어 시뮬레이션"""
+        """RET 명령어 시뮬레이션 - VM 스택 프레임 분석 포함"""
         # 스택 조정값 파싱
         stack_adjust = 0
         if op_str.strip():
@@ -1154,63 +1374,291 @@ class ExecutionSimulator:
             except ValueError:
                 self.output.write(f"        [RET 경고] 스택 조정값 파싱 실패: {op_str}")
         
-        # 스택에서 반환 주소 읽기
+        # 현재 스택 프레임 분석
         rsp = self.vm_state.get_register('rsp')
+        rbp = self.vm_state.get_register('rbp')
+        
+        self.output.write(f"        📊 [스택 프레임 분석] RSP=0x{rsp:x}, RBP=0x{rbp:x}")
+        
+        # 스택 프레임 구조 분석
+        frame_info = self._analyze_stack_frame(rsp, rbp)
+        
+        # 스택에서 반환 주소 읽기
         ret_addr, is_estimated = self.vm_state.get_memory(rsp)
         
         # RSP 조정 (반환 주소 pop + 추가 조정)
-        self.vm_state.set_register('rsp', rsp + 8 + stack_adjust)
+        new_rsp = rsp + 8 + stack_adjust
+        self.vm_state.set_register('rsp', new_rsp)
         
         self.output.write(f"        → ret {stack_adjust} (0x{ret_addr:x}) + stack adjust 0x{stack_adjust:x}")
+        self.output.write(f"        📈 [스택 업데이트] RSP: 0x{rsp:x} → 0x{new_rsp:x}")
         
         # VM 환경에서의 RET 처리
         if ret_addr == 0 or ret_addr is None:
-            self.output.write(f"        🔍 [VM RET] 반환 주소 0x0 감지 - VM 종료 지점일 수 있음")
-            self.output.write(f"        💡 VM에서 ret 0은 종료 또는 디스패처 복귀를 의미할 수 있습니다")
+            self.output.write(f"        🔍 [VM RET] 반환 주소 0x0 감지")
+            
+            # 스택 프레임 기반 VM 상태 분석
+            vm_exit_reason = self._determine_vm_exit_reason(frame_info, rsp, rbp)
+            self.output.write(f"        💡 [VM 분석] {vm_exit_reason}")
             
             # VM 컨텍스트에서 대안적 처리 시도
-            # 1. VM 상태에서 다음 실행 주소 찾기
-            possible_next = self._find_vm_next_address()
+            # 1. 스택 프레임 기반 다음 주소 찾기
+            possible_next = self._find_vm_next_from_frame(frame_info)
             if possible_next:
-                self.output.write(f"        🎯 [VM 추정] 다음 실행 가능 주소: 0x{possible_next:x} {self._track_jump(possible_next)}")
+                self.output.write(f"        🎯 [VM 프레임] 다음 실행 주소: 0x{possible_next:x} {self._track_jump(possible_next)}")
                 return possible_next
             
-            # 2. 스택의 다른 위치에서 주소 찾기
+            # 2. VM 상태에서 다음 실행 주소 찾기
+            possible_next = self._find_vm_next_address()
+            if possible_next:
+                self.output.write(f"        🎯 [VM 레지스터] 다음 실행 주소: 0x{possible_next:x} {self._track_jump(possible_next)}")
+                return possible_next
+            
+            # 3. 스택의 다른 위치에서 주소 찾기
             alt_addr = self._find_alternative_return_address(rsp)
             if alt_addr:
-                self.output.write(f"        🔄 [VM 대안] 대체 실행 주소: 0x{alt_addr:x} {self._track_jump(alt_addr)}")
+                self.output.write(f"        🔄 [VM 스택 검색] 대체 실행 주소: 0x{alt_addr:x} {self._track_jump(alt_addr)}")
                 return alt_addr
             
-            # 3. 그래도 없으면 분석 종료
+            # 4. 그래도 없으면 분석 종료
             self.output.write(f"        🛑 [VM 종료] 더 이상 실행할 주소를 찾을 수 없음")
-            self.output.write(f"        📊 이 지점에서 VM 분석을 정상 종료합니다")
+            self.output.write(f"        📊 스택 프레임 분석 완료 - VM 정상 종료")
             return None
         else:
             # 유효한 반환 주소가 있는 경우
             if is_estimated:
-                self.output.write(f"        ⚠️  [RET 경고] 추정된 반환 주소: 0x{ret_addr:x} {self._track_jump(ret_addr)}")
+                self.output.write(f"        ⚠️  [RET 경고] 추정된 반환 주소: 0x{ret_addr:x}")
             
             # 주소 유효성 검사
             if not self.disasm_engine.is_address_valid(ret_addr):
                 self.output.write(f"        ❌ [RET 오류] 잘못된 주소 범위: 0x{ret_addr:x}")
                 return None
             
-            self.output.write(f"        ✅ [RET 성공] 반환 주소로 점프: 0x{ret_addr:x} {self._track_jump(ret_addr)}")
+            # 반환 주소 타입 분석
+            ret_type = self._analyze_return_address_type(ret_addr, frame_info)
+            self.output.write(f"        ✅ [RET 성공] {ret_type}: 0x{ret_addr:x} {self._track_jump(ret_addr)}")
             return ret_addr
 
     def _find_vm_next_address(self) -> int:
         """VM 상태에서 다음 실행 주소를 추정합니다"""
-        # VM의 일반적인 패턴들 확인
-        # 1. 레지스터에 저장된 코드 포인터 확인
-        code_regs = ['r14', 'r15', 'rbx', 'rsi', 'rdi']  # VM에서 자주 사용되는 레지스터들
+        self.output.write(f"        🔍 [VM 레지스터 분석] 다음 실행 주소 탐색")
         
-        for reg in code_regs:
+        # VM의 일반적인 패턴들 확인
+        # 1. 레지스터에 저장된 코드 포인터 확인 (우선순위 순)
+        code_regs = [
+            ('r14', 'VM 코드 포인터'), ('r15', 'VM 핸들러 포인터'), 
+            ('r13', 'VM 디스패처'), ('r12', 'VM 스택 포인터'),
+            ('rbx', 'VM 베이스'), ('rsi', 'VM 소스'), ('rdi', 'VM 목적지'),
+            ('r8', 'VM 임시1'), ('r9', 'VM 임시2'), ('r10', 'VM 임시3'), ('r11', 'VM 임시4')
+        ]
+        
+        for reg, desc in code_regs:
             addr = self.vm_state.get_register(reg)
-            if addr and self.disasm_engine.is_address_valid(addr):
-                self.output.write(f"        🔍 [VM 힌트] {reg}에서 유효한 주소 발견: 0x{addr:x} {self._track_jump(addr)}")
-                return addr
+            if addr and addr != 0 and self.disasm_engine.is_address_valid(addr):
+                self.output.write(f"        🎯 [VM 힌트] {reg}({desc})에서 유효한 주소: 0x{addr:x}")
+                
+                # 주소가 실제 명령어인지 확인
+                if self._is_valid_instruction_address(addr):
+                    self.output.write(f"        ✅ [확인됨] 0x{addr:x}는 유효한 명령어 주소")
+                    return addr
+                else:
+                    self.output.write(f"        ⚠️  [주의] 0x{addr:x}는 데이터일 수 있음")
+        
+        # 2. 레지스터 값들을 조합해서 주소 계산 시도
+        combined_addr = self._try_register_combinations()
+        if combined_addr:
+            return combined_addr
+        
+        # 3. VM 컨텍스트 추정 (일반적인 VM 패턴 기반)
+        context_addr = self._estimate_vm_context()
+        if context_addr:
+            return context_addr
         
         return None
+
+    def _is_valid_instruction_address(self, addr: int) -> bool:
+        """주소가 유효한 명령어를 가리키는지 확인"""
+        try:
+            instructions = self.disasm_engine.disassemble_at(addr, 16)
+            return len(instructions) > 0
+        except:
+            return False
+
+    def _try_register_combinations(self) -> int:
+        """레지스터 값들을 조합해서 주소 계산"""
+        self.output.write(f"        🧮 [조합 계산] 레지스터 값 조합 시도")
+        
+        # 일반적인 VM 주소 계산 패턴들
+        patterns = [
+            # (base_reg, offset_reg, description)
+            ('rbp', 'rax', 'RBP + RAX'),
+            ('rbp', 'rcx', 'RBP + RCX'), 
+            ('rsi', 'rax', 'RSI + RAX'),
+            ('rdi', 'rax', 'RDI + RAX'),
+            ('r14', 'rax', 'R14 + RAX'),
+            ('r15', 'rax', 'R15 + RAX'),
+        ]
+        
+        for base_reg, offset_reg, desc in patterns:
+            base = self.vm_state.get_register(base_reg)
+            offset = self.vm_state.get_register(offset_reg)
+            
+            if base and offset:
+                calculated = (base + offset) & 0xFFFFFFFFFFFFFFFF
+                if self.disasm_engine.is_address_valid(calculated) and self._is_valid_instruction_address(calculated):
+                    self.output.write(f"        🎯 [조합 성공] {desc}: 0x{calculated:x}")
+                    return calculated
+        
+        return None
+
+    def _estimate_vm_context(self) -> int:
+        """VM 컨텍스트를 기반으로 다음 주소 추정"""
+        self.output.write(f"        🎭 [VM 컨텍스트] 실행 패턴 분석")
+        
+        # 점프 히스토리에서 패턴 찾기
+        if hasattr(self, 'jump_counts') and self.jump_counts:
+            # 가장 자주 방문한 주소들 중에서 후보 찾기
+            frequent_addrs = sorted(self.jump_counts.items(), key=lambda x: x[1], reverse=True)
+            
+            for addr, count in frequent_addrs[:5]:  # 상위 5개만 확인
+                if self.disasm_engine.is_address_valid(addr):
+                    # 주변 주소들도 확인 (VM 핸들러는 보통 근처에 있음)
+                    for offset in [0, 8, 16, 32, 64]:
+                        candidate = addr + offset
+                        if (self.disasm_engine.is_address_valid(candidate) and 
+                            self._is_valid_instruction_address(candidate)):
+                            self.output.write(f"        🎯 [패턴 기반] 0x{candidate:x} (빈도 기반)")
+                            return candidate
+        
+        return None
+
+    def _analyze_stack_frame(self, rsp: int, rbp: int) -> dict:
+        """스택 프레임 구조를 분석합니다"""
+        frame_info = {
+            'rsp': rsp,
+            'rbp': rbp,
+            'frame_size': 0,
+            'saved_rbp': None,
+            'return_addresses': [],
+            'local_vars': {},
+            'is_vm_frame': False,
+            'is_vm_flat_stack': False
+        }
+        
+        # RBP=0 특별 처리 (VM 플랫 스택 구조)
+        if rbp == 0:
+            self.output.write(f"        🔧 [VM 특성] RBP=0 감지 - VM 플랫 스택 구조")
+            frame_info['is_vm_flat_stack'] = True
+            frame_info['frame_size'] = 128  # VM 스택 탐색 범위 확장
+        else:
+            # 프레임 크기 계산 (표준 구조)
+            if rbp > rsp:
+                frame_info['frame_size'] = rbp - rsp
+                self.output.write(f"        📐 [프레임 크기] {frame_info['frame_size']} 바이트")
+            
+            # 저장된 RBP 읽기 (표준 프레임 구조)
+            saved_rbp, _ = self.vm_state.get_memory(rbp)
+            frame_info['saved_rbp'] = saved_rbp
+            self.output.write(f"        💾 [저장된 RBP] 0x{saved_rbp:x}")
+        
+        # 스택의 여러 위치에서 잠재적 반환 주소들 수집
+        search_range = min(128, max(64, frame_info['frame_size']))  # 범위 확장
+        self.output.write(f"        🔍 [스택 탐색] {search_range} 바이트 범위 검색")
+        
+        for offset in range(0, search_range, 8):
+            addr = rsp + offset
+            value, _ = self.vm_state.get_memory(addr)
+            if value and self.disasm_engine.is_address_valid(value):
+                frame_info['return_addresses'].append((addr, value))
+                offset_info = f"+{offset}" if offset > 0 else ""
+                self.output.write(f"        🔗 [잠재적 반환주소] [RSP{offset_info}] 0x{addr:x} = 0x{value:x}")
+        
+        # VM 특성 감지
+        frame_info['is_vm_frame'] = self._detect_vm_frame_characteristics(frame_info)
+        
+        return frame_info
+
+    def _determine_vm_exit_reason(self, frame_info: dict, rsp: int, rbp: int) -> str:
+        """VM 종료 이유를 분석합니다"""
+        reasons = []
+        
+        # 스택 프레임 크기 분석
+        if frame_info['frame_size'] == 0:
+            reasons.append("빈 스택 프레임 - VM 초기/종료 상태")
+        elif frame_info['frame_size'] < 32:
+            reasons.append("작은 프레임 - VM 핸들러 종료")
+        else:
+            reasons.append("큰 프레임 - VM 디스패처 종료")
+        
+        # 저장된 반환 주소들 분석
+        if not frame_info['return_addresses']:
+            reasons.append("반환 주소 없음 - VM 최상위 종료")
+        elif len(frame_info['return_addresses']) == 1:
+            reasons.append("단일 반환 주소 - 핸들러→디스패처")
+        else:
+            reasons.append("다중 반환 주소 - 중첩 호출 구조")
+        
+        # VM 특성 분석
+        if frame_info['is_vm_frame']:
+            reasons.append("VM 특성 감지됨")
+        
+        return " | ".join(reasons)
+
+    def _find_vm_next_from_frame(self, frame_info: dict) -> int:
+        """스택 프레임에서 다음 실행 주소를 찾습니다"""
+        # 잠재적 반환 주소들 중에서 유효한 것 선택
+        for addr, value in frame_info['return_addresses']:
+            if value != 0 and self.disasm_engine.is_address_valid(value):
+                self.output.write(f"        🎯 [프레임 힌트] 0x{addr:x}에서 발견: 0x{value:x}")
+                return value
+        
+        # 저장된 RBP를 통한 상위 프레임 탐색
+        if frame_info['saved_rbp'] and frame_info['saved_rbp'] != 0:
+            parent_ret_addr, _ = self.vm_state.get_memory(frame_info['saved_rbp'] + 8)
+            if parent_ret_addr and self.disasm_engine.is_address_valid(parent_ret_addr):
+                self.output.write(f"        🎯 [상위 프레임] 0x{parent_ret_addr:x}")
+                return parent_ret_addr
+        
+        return None
+
+    def _analyze_return_address_type(self, ret_addr: int, frame_info: dict) -> str:
+        """반환 주소의 타입을 분석합니다"""
+        # 주소 범위 분석
+        if ret_addr < self.disasm_engine.base_address:
+            return "시스템 라이브러리 반환"
+        elif ret_addr >= self.disasm_engine.base_address + len(self.disasm_engine.code_bytes):
+            return "외부 모듈 반환"
+        
+        # VM 내부 주소 분석
+        offset = ret_addr - self.disasm_engine.base_address
+        
+        # 대략적인 VM 구조 추정
+        if offset < 0x1000:
+            return "VM 디스패처 복귀"
+        elif offset < 0x10000:
+            return "VM 핸들러 체이닝"
+        else:
+            return "VM 내부 함수 반환"
+
+    def _detect_vm_frame_characteristics(self, frame_info: dict) -> bool:
+        """VM 프레임의 특성을 감지합니다"""
+        vm_indicators = 0
+        
+        # 특정 크기 패턴 (VM은 보통 고정 크기 프레임 사용)
+        if frame_info['frame_size'] in [32, 48, 64, 128]:
+            vm_indicators += 1
+        
+        # 다중 반환 주소 (VM 핸들러 체이닝)
+        if len(frame_info['return_addresses']) > 2:
+            vm_indicators += 1
+        
+        # RBP와 RSP의 특정 관계
+        if frame_info['rbp'] and frame_info['rsp']:
+            diff = frame_info['rbp'] - frame_info['rsp']
+            if diff in [24, 32, 40, 48]:  # VM에서 자주 사용되는 프레임 크기
+                vm_indicators += 1
+        
+        return vm_indicators >= 2
 
     def _find_alternative_return_address(self, current_rsp: int) -> int:
         """스택의 다른 위치에서 유효한 주소를 찾습니다"""
@@ -1330,8 +1778,17 @@ class ExecutionSimulator:
             # 메모리 참조 파싱
             address = self._parse_memory_reference(operand)
             if address is not None:
+                # 기존 값 확인 (메모리 변화 추적용)
+                old_value, _ = self.vm_state.get_memory(address)
+                
+                # 메모리 값 설정
                 self.vm_state.set_memory(address, value)
-                self.output.write(f"        [메모리] 0x{address:x} ← 0x{value:x} (저장)")
+                
+                # 메모리 변화 추적
+                if old_value != value:
+                    self._track_memory_change(address, old_value, value)
+                
+                self.output.write(f"        💾 [메모리 저장] 0x{address:x} ← 0x{value:x}")
 
     def _is_32bit_register(self, operand: str) -> bool:
         """32비트 레지스터인지 확인"""
@@ -1694,6 +2151,224 @@ class ExecutionSimulator:
         
         return None
 
+    def _simulate_syscall(self, op_str: str):
+        """SYSCALL 명령어 시뮬레이션 - 시스템 호출 실행"""
+        # rax에서 시스템 콜 번호 가져오기
+        syscall_num = self.vm_state.get_register('rax')
+        
+        # 시스템 콜 인자들 가져오기 (Linux x64 ABI)
+        arg1 = self.vm_state.get_register('rdi')  # 첫 번째 인자
+        arg2 = self.vm_state.get_register('rsi')  # 두 번째 인자
+        arg3 = self.vm_state.get_register('rdx')  # 세 번째 인자
+        arg4 = self.vm_state.get_register('r10')  # 네 번째 인자
+        arg5 = self.vm_state.get_register('r8')   # 다섯 번째 인자
+        arg6 = self.vm_state.get_register('r9')   # 여섯 번째 인자
+        
+        # 시스템 콜 이름 매핑 (주요 시스템 콜들)
+        syscall_names = {
+            0: 'sys_read',
+            1: 'sys_write', 
+            2: 'sys_open',
+            3: 'sys_close',
+            4: 'sys_stat',
+            5: 'sys_fstat',
+            6: 'sys_lstat',
+            7: 'sys_poll',
+            8: 'sys_lseek',
+            9: 'sys_mmap',
+            10: 'sys_mprotect',
+            11: 'sys_munmap',
+            12: 'sys_brk',
+            13: 'sys_rt_sigaction',
+            14: 'sys_rt_sigprocmask',
+            15: 'sys_rt_sigreturn',
+            16: 'sys_ioctl',
+            17: 'sys_pread64',
+            18: 'sys_pwrite64',
+            19: 'sys_readv',
+            20: 'sys_writev',
+            21: 'sys_access',
+            22: 'sys_pipe',
+            23: 'sys_select',
+            24: 'sys_sched_yield',
+            25: 'sys_mremap',
+            26: 'sys_msync',
+            27: 'sys_mincore',
+            28: 'sys_madvise',
+            29: 'sys_shmget',
+            30: 'sys_shmat',
+            31: 'sys_shmctl',
+            32: 'sys_dup',
+            33: 'sys_dup2',
+            34: 'sys_pause',
+            35: 'sys_nanosleep',
+            36: 'sys_getitimer',
+            37: 'sys_alarm',
+            38: 'sys_setitimer',
+            39: 'sys_getpid',
+            40: 'sys_sendfile',
+            41: 'sys_socket',
+            42: 'sys_connect',
+            43: 'sys_accept',
+            44: 'sys_sendto',
+            45: 'sys_recvfrom',
+            46: 'sys_sendmsg',
+            47: 'sys_recvmsg',
+            48: 'sys_shutdown',
+            49: 'sys_bind',
+            50: 'sys_listen',
+            51: 'sys_getsockname',
+            52: 'sys_getpeername',
+            53: 'sys_socketpair',
+            54: 'sys_setsockopt',
+            55: 'sys_getsockopt',
+            56: 'sys_clone',
+            57: 'sys_fork',
+            58: 'sys_vfork',
+            59: 'sys_execve',
+            60: 'sys_exit',
+            61: 'sys_wait4',
+            62: 'sys_kill',
+            63: 'sys_uname',
+            231: 'sys_exit_group'
+        }
+        
+        syscall_name = syscall_names.get(syscall_num, f'sys_unknown_{syscall_num}')
+        
+        # 시스템 콜 정보 출력
+        self.output.write(f"        🔧 [SYSCALL] {syscall_name} (rax={syscall_num})")
+        if arg1 != 0: self.output.write(f"            arg1(rdi) = 0x{arg1:x}")
+        if arg2 != 0: self.output.write(f"            arg2(rsi) = 0x{arg2:x}")
+        if arg3 != 0: self.output.write(f"            arg3(rdx) = 0x{arg3:x}")
+        if arg4 != 0: self.output.write(f"            arg4(r10) = 0x{arg4:x}")
+        if arg5 != 0: self.output.write(f"            arg5(r8)  = 0x{arg5:x}")
+        if arg6 != 0: self.output.write(f"            arg6(r9)  = 0x{arg6:x}")
+        
+        # 특정 시스템 콜에 대한 특별 처리
+        return_value = self._handle_specific_syscall(syscall_num, syscall_name, 
+                                                   arg1, arg2, arg3, arg4, arg5, arg6)
+        
+        # SYSCALL 실행 후 레지스터 상태 변경
+        # rax에 반환값 저장
+        self.vm_state.set_register('rax', return_value)
+        
+        # rcx와 r11은 SYSCALL에 의해 덮어씀 (Linux x64 ABI)
+        # rcx = return address (다음 명령어 주소), r11 = RFLAGS
+        # 여기서는 시뮬레이션이므로 적절한 값으로 설정
+        self.vm_state.set_register('rcx', 0x0)  # 가상의 반환 주소
+        self.vm_state.set_register('r11', 0x202)  # 가상의 RFLAGS
+        
+        self.output.write(f"        → syscall 반환값: rax = 0x{return_value:x}")
+        
+        return None  # syscall은 점프가 아니므로 None 반환
+
+    def _handle_specific_syscall(self, syscall_num: int, syscall_name: str, 
+                                arg1: int, arg2: int, arg3: int, arg4: int, arg5: int, arg6: int) -> int:
+        """특정 시스템 콜에 대한 상세 처리"""
+        
+        if syscall_num == 1:  # sys_write
+            fd, buf_addr, count = arg1, arg2, arg3
+            self.output.write(f"            💾 [sys_write] fd={fd}, buf=0x{buf_addr:x}, count={count}")
+            
+            # 버퍼 내용 읽기 시도 (가능한 경우)
+            if buf_addr and count < 1024:  # 합리적인 크기만
+                try:
+                    buffer_content = ""
+                    for i in range(min(count, 64)):  # 최대 64바이트만 표시
+                        byte_val, _ = self.vm_state.get_memory(buf_addr + i)
+                        if 32 <= (byte_val & 0xFF) <= 126:  # 출력 가능한 ASCII
+                            buffer_content += chr(byte_val & 0xFF)
+                        else:
+                            buffer_content += f"\\x{byte_val & 0xFF:02x}"
+                    
+                    if buffer_content:
+                        truncated = "..." if count > 64 else ""
+                        self.output.write(f"            📝 [버퍼 내용] \"{buffer_content[:100]}{truncated}\"")
+                except:
+                    pass
+            
+            return count  # 성공적으로 쓴 바이트 수 반환
+            
+        elif syscall_num == 0:  # sys_read
+            fd, buf_addr, count = arg1, arg2, arg3
+            self.output.write(f"            📖 [sys_read] fd={fd}, buf=0x{buf_addr:x}, count={count}")
+            return count  # 성공적으로 읽은 바이트 수 반환
+            
+        elif syscall_num == 2:  # sys_open
+            filename_addr, flags, mode = arg1, arg2, arg3
+            self.output.write(f"            📂 [sys_open] filename=0x{filename_addr:x}, flags=0x{flags:x}, mode=0x{mode:x}")
+            
+            # 파일명 읽기 시도
+            if filename_addr:
+                try:
+                    filename = ""
+                    for i in range(256):  # 최대 256문자
+                        byte_val, _ = self.vm_state.get_memory(filename_addr + i)
+                        if byte_val == 0:
+                            break
+                        if 32 <= byte_val <= 126:
+                            filename += chr(byte_val)
+                        else:
+                            filename += f"\\x{byte_val:02x}"
+                    
+                    if filename:
+                        self.output.write(f"            📄 [파일명] \"{filename}\"")
+                except:
+                    pass
+            
+            return 3  # 성공시 파일 디스크립터 반환 (가상)
+            
+        elif syscall_num == 3:  # sys_close
+            fd = arg1
+            self.output.write(f"            🔒 [sys_close] fd={fd}")
+            return 0  # 성공
+            
+        elif syscall_num == 9:  # sys_mmap
+            addr, length, prot, flags, fd, offset = arg1, arg2, arg3, arg4, arg5, arg6
+            self.output.write(f"            🗺️  [sys_mmap] addr=0x{addr:x}, len=0x{length:x}, prot=0x{prot:x}")
+            self.output.write(f"                         flags=0x{flags:x}, fd={fd}, offset=0x{offset:x}")
+            return 0x7f0000000000 + (addr & 0xFFFF)  # 가상의 매핑 주소 반환
+            
+        elif syscall_num == 11:  # sys_munmap
+            addr, length = arg1, arg2
+            self.output.write(f"            🗺️  [sys_munmap] addr=0x{addr:x}, len=0x{length:x}")
+            return 0  # 성공
+            
+        elif syscall_num == 39:  # sys_getpid
+            self.output.write(f"            🆔 [sys_getpid]")
+            return 1234  # 가상의 PID
+            
+        elif syscall_num == 60 or syscall_num == 231:  # sys_exit, sys_exit_group
+            exit_code = arg1
+            self.output.write(f"            🚪 [sys_exit] exit_code={exit_code}")
+            self.output.write(f"            ⚠️  프로그램 종료 시그널 - 분석을 중단합니다")
+            return exit_code
+            
+        elif syscall_num == 59:  # sys_execve
+            filename_addr, argv_addr, envp_addr = arg1, arg2, arg3
+            self.output.write(f"            🚀 [sys_execve] filename=0x{filename_addr:x}, argv=0x{argv_addr:x}")
+            self.output.write(f"            ⚠️  새 프로그램 실행 - 분석이 여기서 끝날 수 있음")
+            return 0
+            
+        else:
+            # 기본 처리: 성공 반환값 0
+            return 0
+
+    def _track_memory_change(self, address: int, old_value: int, new_value: int):
+        """메모리 변화를 추적합니다."""
+        # 메모리 변화 기록
+        if address not in self.memory_changes:
+            self.memory_changes[address] = []
+        self.memory_changes[address].append((old_value, new_value, self.instruction_count))
+        
+        # 메모리 쓰기 패턴 기록
+        if address not in self.memory_writes:
+            self.memory_writes[address] = []
+        self.memory_writes[address].append(self.instruction_count)
+        
+        # 상세 로깅
+        self.output.write(f"        📝 [메모리 추적] #{self.instruction_count}: [0x{address:x}] 0x{old_value:x} → 0x{new_value:x}")
+
 
 # ============================================================================
 # 메인 VM 분석기
@@ -1771,75 +2446,74 @@ def get_simulation_settings():
     except:
         return 200
 
-if __name__ == "__main__":
-    # 설정
-    binary_file_path = "L2.bin"
-    BASE_ADDRESS = 0x7ff66f610400
-    ENTRY_ADDRESS = 0x7ff66f74f031
-    #0x7ff7bbf21000
-    #0x7ff7bc43a788
-
-    # *** 초기 스택 레지스터 값 설정 (디버거에서 확인한 실제 값 사용) ***
-    # rbp와 rsp는 독립적으로 설정 가능합니다 (서로 다른 값 가능)
-    # None으로 두면 기본값(0x7fff12340000) 사용
-    INITIAL_RBP = None  # 예: 0x00007ffe12345678 (실제 rbp 값)
-    INITIAL_RSP = None  # 예: 0x00007ffe12345650 (실제 rsp 값, rbp와 다를 수 있음)
-    
-    # 바이너리 로드
+def main():
     try:
-        with open(binary_file_path, "rb") as f:
-            code = f.read()
-        print(f"[*] {binary_file_path}에서 {len(code)} 바이트 로드 성공\n")
-    except FileNotFoundError:
-        print(f"[!] 파일을 찾을 수 없습니다: {binary_file_path}")
-        exit(1)
-
-    # 사용자 선택
-    analysis_mode = get_user_choice()
-    
-    # 출력 Writer 생성 (모드에 따라 다른 파일명)
-    output_writer = OutputWriter(analysis_mode)
-    
-    # 분석기 초기화 (초기 rbp/rsp 값 전달)
-    analyzer = VMAnalyzer(code, BASE_ADDRESS, output_writer, INITIAL_RBP, INITIAL_RSP)
-    
-    # 실제 메모리 값 설정 (Binary Ninja나 디버거에서 확인한 값들)
-    # 추정값이 나오면 아래에 실제값을 추가하세요
-    memory_values = {
-        # 예시: 0x7fff123400f8: 0x실제값,
-        # 예시: 0x7fff12340170: 0x실제값,
-    }
-    if memory_values:
-        analyzer.set_real_memory_values(memory_values)
-    
-    # 실제 레지스터 값 설정 (필요시)
-    register_values = {
-        # 예시: 'r13': 0x실제값,
-        # 예시: 'rax': 0x실제값,
-        # rbp, rsp도 여기서 나중에 덮어쓸 수 있음
-    }
-    if register_values:
-        analyzer.set_real_registers(register_values)
-    
-    # 분석 실행
-    try:
-        if analysis_mode == "1":
-            output_writer.write("\n[*] 상세 tail-call 추적을 시작합니다...")
-            max_block, max_revisits = get_trace_settings()
-            output_writer.write(f"[*] 설정: 블록당 {max_block}개, 재방문 {max_revisits}회")
-            analyzer.trace_tail_calls(ENTRY_ADDRESS, max_block, max_revisits)
+        # 파일 읽기
+        with open('L2.bin', 'rb') as f:
+            code_bytes = f.read()
+        
+        base_address = 0x7ff6ebea1000
+        entry_address = 0x7ff6ebfdf031
+        
+        # 출력 라이터 생성
+        output_writer = OutputWriter('simulation')
+        
+        # VM 분석기 생성
+        analyzer = VMAnalyzer(
+            code_bytes=code_bytes, 
+            base_address=base_address, 
+            output_writer=output_writer
+        )
+        
+        # 🎯 실제 초기 스택 프레임 데이터 설정
+        print("🔧 실제 디버깅 데이터를 기반으로 초기 스택 값 설정...")
+        
+        # 실제 스택 메모리 값들 (디버깅에서 확인된 값들)
+        real_stack_values = {
+            # pushfq에서 push되어야 할 올바른 RFLAGS 값
+            0x3beb8ff7c8: 0x1fe,  # pushfq 결과
             
-        elif analysis_mode == "2":
-            output_writer.write("\n[*] 고수준 VM 패턴 분석을 시작합니다...")
-            analyzer.analyze_vm_patterns(ENTRY_ADDRESS, max_chains=5)
+            # 올바른 다음 실행 주소들
+            0x3beb8ff7d0: 0x7ff6ebeb1cd0,  # 실제 다음 주소
+            0x3beb8ff7d8: 0x7ff6ebea1000,  # 베이스 주소
             
-        elif analysis_mode == "3":
-            output_writer.write("\n[*] 실행 시뮬레이션을 시작합니다...")
-            max_insns = get_simulation_settings()
-            output_writer.write(f"[*] 설정: 최대 {max_insns}개 명령어")
-            analyzer.simulate_execution(ENTRY_ADDRESS, max_insns)
-            
-    finally:
-        # 분석 완료 후 파일 닫기
+            # 추가 스택 프레임 데이터 (필요시)
+            0x3beb8ff7e0: 0x0,
+            0x3beb8ff7e8: 0x0,
+        }
+        
+        # 실제 레지스터 값들 
+        real_register_values = {
+            'rdx': 0x1fe,  # 실제 rdx 값
+        }
+        
+        # VM 상태에 실제 값들 설정
+        analyzer.set_real_memory_values(real_stack_values)
+        analyzer.set_real_registers(real_register_values)
+        
+        print(f"📍 베이스 주소: 0x{base_address:x}")
+        print(f"🎯 엔트리 포인트: 0x{entry_address:x}")
+        
+        choice = get_user_choice()
+        
+        if choice == '1':
+            max_per_block, max_revisits = get_trace_settings()
+            analyzer.trace_tail_calls(entry_address, max_per_block, max_revisits)
+        elif choice == '2':
+            max_chains = int(input("최대 체인 수 (기본 10): ") or "10")
+            analyzer.analyze_vm_patterns(entry_address, max_chains)
+        elif choice == '3':
+            max_instructions = get_simulation_settings()
+            analyzer.simulate_execution(entry_address, max_instructions)
+        
         analyzer.close_output()
-        output_writer.write("\n[*] 분석이 완료되었습니다.") 
+        
+    except FileNotFoundError:
+        print("❌ L2.bin 파일을 찾을 수 없습니다.")
+    except Exception as e:
+        print(f"❌ 오류 발생: {e}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == "__main__":
+    main()
